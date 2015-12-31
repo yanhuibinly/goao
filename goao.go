@@ -35,7 +35,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	if strings.Trim(req.Host, " ") == "" {
 		return nil, errors.New("address is null")
 	}
-	if req.CmdId <= 0 {
+	if iao.GetCmdId() <= 0 {
 		return nil, errors.New("cmdId is invalid")
 	}
 
@@ -105,7 +105,7 @@ func (g *GoAo) serialize(iao IAoReq, req *Request) []byte {
 	dwPkgLength := uint32(1 + g.ph.iPkgHeadLength + dwBodyLen + 1)
 
 	// 构建包头
-	g.ph.SetDwCommand(req.CmdId)
+	g.ph.SetDwCommand(iao.GetCmdId())
 	g.ph.SetDwLength(dwPkgLength)
 	// 构建序列化buffer
 	bs := NewByteStream()

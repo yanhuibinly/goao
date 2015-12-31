@@ -1,7 +1,6 @@
 package goao
 
 type Request struct {
-	CmdId      uint32                 //命令字
 	Host       string                 //接口地址
 	Source     string                 //来源
 	MachineKey string                 //机器key
@@ -12,7 +11,10 @@ type Request struct {
 }
 
 func NewRequest() *Request {
-	return &Request{}
+	obj := &Request{}
+	obj.InReserve = "utf8"
+
+	return obj
 }
 
 func (r *Request) Serialize(bs *ByteStream) bool {

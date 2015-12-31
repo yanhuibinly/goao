@@ -14,7 +14,40 @@ func Test_CallGetUserInfo(t *testing.T) {
 
 	var req = NewRequest()
 
-	req.CmdId = 0x40061801
+	req.Host = "172.172.177.5:53101"
+
+	req.MachineKey = "5680a103c606e"
+
+	req.SceneId = 1
+
+	req.Source = "go ao test"
+
+	req.Uid = uid
+
+	aoUserReq := NewAoGetUserInfoByUidReq()
+
+	goTest := New()
+
+	aoUserReq.Uid = req.Uid
+
+	aoUserRes := NewAoGetUserInfoByUidRsp()
+
+	res, err := goTest.Call(req, aoUserReq, aoUserRes)
+
+	if err != nil {
+		t.Errorf("response is %v,err is %s", res, err.Error())
+	} else if aoUserRes.Result != 0 {
+
+	}
+}
+
+func Test_CallBatchGetUserInfo(t *testing.T) {
+
+	var uids []uint64
+
+	uids = []uint64{1000015005, 1000015006}
+
+	var req = NewRequest()
 
 	req.Host = "172.172.177.5:53101"
 
@@ -22,28 +55,20 @@ func Test_CallGetUserInfo(t *testing.T) {
 
 	req.SceneId = 1
 
-	req.Source = "/data/code/user_iapi/vendor/kidswant/ao-user/src/Lib/Info.php"
+	req.Source = "go ao test"
 
-	req.Uid = uid
-
-	req.InReserve = "utf8"
-
-	aoUserReq := NewAoUserInfoByUidReq()
+	aoUserReq := NewAoBatchGetUserInfoByUidReq()
 
 	goTest := New()
 
-	aoUserReq.Uid = req.Uid
+	aoUserReq.Uids = uids
 
-	aoUserRes := NewAoUserInfoByUidRsp()
+	aoUserRes := NewAoBatchGetUserInfoByUidRsp()
 
 	res, err := goTest.Call(req, aoUserReq, aoUserRes)
 
 	if err != nil {
 		t.Errorf("response is %v,err is %s", res, err.Error())
 	}
-
-	//*aoUserRes = res.(AoUserInfoByUidRsp)
-
-	t.Errorf("response is %v", aoUserRes.User.Mobile)
-
+	t.Errorf("response is %v", aoUserRes.Users)
 }

@@ -82,6 +82,8 @@ func (b *ByteStream) PopUint64() (uint64, error) {
 		return 0, err
 	}
 	b.PopByte()
+	//fmt.Println("uint:", byteData, ",offset", b.iOffset)
+
 	strData := strings.TrimLeft(string(byteData), "0")
 
 	if strData == "" {
@@ -91,7 +93,16 @@ func (b *ByteStream) PopUint64() (uint64, error) {
 	data, err := strconv.ParseUint(strData, 16, 64)
 
 	return data, err
+}
 
+func (b *ByteStream) PushUint64Set(data []uint64) {
+	length := len(data)
+
+	b.PushUint32(uint32(length))
+
+	for item := range data {
+		b.PushUint64(data[item])
+	}
 }
 
 func (b *ByteStream) PopInt64() (int64, error) {
