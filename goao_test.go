@@ -37,6 +37,7 @@ func Test_CallGetUserInfo(t *testing.T) {
 	if err != nil {
 		t.Errorf("response is %v,err is %s", res, err.Error())
 	} else if aoUserRes.Result != 0 {
+		t.Errorf("response is %v,err is %s", res)
 
 	}
 }
@@ -70,5 +71,43 @@ func Test_CallBatchGetUserInfo(t *testing.T) {
 	if err != nil {
 		t.Errorf("response is %v,err is %s", res, err.Error())
 	}
-	t.Errorf("response is %v", aoUserRes.Users)
+	if aoUserRes.Result != 0 {
+		t.Errorf("response is %v", aoUserRes)
+	}
+}
+
+func Test_CallLoginByUid(t *testing.T) {
+
+	var uid int64
+
+	uid = 1000001513
+
+	skey := "H57CF78028"
+
+	var req = NewRequest()
+
+	req.Host = "172.172.177.5:53101"
+
+	req.MachineKey = "5680a103c606e"
+
+	req.SceneId = 1
+
+	req.Source = "go ao test"
+
+	goTest := New()
+
+	goTest.SetDwOperatorId(uid)
+
+	goTest.SetSPassword(skey)
+
+	aoReq := NewAoCheckLoginByUidReq()
+
+	aoRes := NewAoCheckLoginByUidRsp()
+
+	res, err := goTest.Call(req, aoReq, aoRes)
+
+	if err != nil {
+		t.Errorf("response is %v,err is %s", res, err.Error())
+	}
+	t.Errorf("response is %v", aoRes.Result)
 }

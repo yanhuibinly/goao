@@ -230,3 +230,11 @@ func (p *Pkg) SetDwCommand(cmd uint32) {
 func (p *Pkg) SetDwLength(length uint32) {
 	p.dwLength = length
 }
+
+func (p *Pkg) SetSPassword(sps string) {
+	p.sPassport = sps
+}
+
+func (p *Pkg) SetDwOperatorId(operatorId int64) {
+	p.dwOperatorId = uint32(operatorId)
+}

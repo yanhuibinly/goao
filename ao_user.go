@@ -157,3 +157,59 @@ func (u *AoBatchGetUserInfoByUidRsp) UnSerialize(bs *ByteStream) (bool, error) {
 }
 
 /*BatchGetUserInfoByUid end*/
+
+/*CheckLoginByUid start*/
+type AoCheckLoginByUidReq struct {
+}
+
+func NewAoCheckLoginByUidReq() *AoCheckLoginByUidReq {
+
+	model := &AoCheckLoginByUidReq{}
+	return model
+}
+
+func (u *AoCheckLoginByUidReq) GetCmdId() uint32 {
+	return 0x40061811
+}
+func (u *AoCheckLoginByUidReq) Serialize(bs *ByteStream, req *Request) bool {
+	bs.PushString(req.MachineKey)
+	bs.PushString(req.Source)
+	bs.PushUint32(req.SceneId)
+	bs.PushString(req.InReserve)
+
+	return bs.IsGood()
+}
+
+type AoCheckLoginByUidRsp struct {
+	AoRsp
+}
+
+func NewAoCheckLoginByUidRsp() *AoCheckLoginByUidRsp {
+	model := &AoCheckLoginByUidRsp{}
+	return model
+}
+
+func (u *AoCheckLoginByUidRsp) UnSerialize(bs *ByteStream) (bool, error) {
+
+	var errResult error
+	u.Result, errResult = bs.PopUint32()
+	if errResult != nil {
+		return false, errResult
+	}
+
+	var errMsg error
+	u.ErrMsg, errMsg = bs.PopString()
+	if errMsg != nil {
+		return false, errMsg
+	}
+	var errOutResever error
+	u.OutReserve, errOutResever = bs.PopString()
+
+	if errOutResever != nil {
+		return false, errOutResever
+	}
+
+	return bs.IsGood(), nil
+}
+
+/*CheckLoginByUid end*/

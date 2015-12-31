@@ -47,7 +47,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	defer conn.Close()
 
-	conn.SetDeadline(time.Now().Add(10000 * time.Millisecond))
+	conn.SetDeadline(time.Now().Add(3000 * time.Millisecond))
 
 	dataWrite := g.serialize(iao, req)
 
@@ -153,4 +153,12 @@ func getBytes(key interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func (g *GoAo) SetSPassword(sps string) {
+	g.ph.sPassport = sps
+}
+
+func (g *GoAo) SetDwOperatorId(operatorId int64) {
+	g.ph.SetDwOperatorId(operatorId)
 }

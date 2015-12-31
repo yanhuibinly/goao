@@ -144,6 +144,27 @@ func (b *ByteStream) PushUint32(data uint32) {
 	b.iOffset += 4
 
 }
+
+/*
+func (b *ByteStream) PushUint32FromInt64(data64 int64) {
+
+	if !b.readWrite {
+		b.iOffset += 4
+		return
+	}
+	data := uint32(data64)
+
+	b.byPackage = append(b.byPackage, byte(data>>24))
+
+	b.byPackage = append(b.byPackage, byte(data>>16))
+
+	b.byPackage = append(b.byPackage, byte(data>>8))
+
+	b.byPackage = append(b.byPackage, byte(data))
+
+	b.iOffset += 4
+}*/
+
 func (b *ByteStream) PopUint() (int, error) {
 	if !b.bGood || (b.iOffset+4 > b.iBufLength) {
 		b.bGood = false
