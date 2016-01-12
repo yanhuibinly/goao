@@ -1,8 +1,6 @@
 package goao
 
-import (
-	"fmt"
-)
+import ()
 
 type Pkg struct {
 	dwLength   uint32
