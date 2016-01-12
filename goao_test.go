@@ -76,13 +76,13 @@ func Test_CallBatchGetUserInfo(t *testing.T) {
 	}
 }
 
-func Test_CallLoginByUid(t *testing.T) {
+func Test_CallCheckLoginByUid(t *testing.T) {
 
 	var uid int64
 
-	uid = 1000001513
+	uid = 1000072894
 
-	skey := "H57CF78028"
+	skey := "H5BEEE7D991"
 
 	var req = NewRequest()
 

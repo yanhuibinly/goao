@@ -1,5 +1,9 @@
 package goao
 
+import (
+	"fmt"
+)
+
 type Pkg struct {
 	dwLength   uint32
 	dwSerialNo uint32
@@ -232,7 +236,7 @@ func (p *Pkg) SetDwLength(length uint32) {
 }
 
 func (p *Pkg) SetSPassword(sps string) {
-	p.sPassport = sps
+	p.sPassport = sps[:10]
 }
 
 func (p *Pkg) SetDwOperatorId(operatorId int64) {

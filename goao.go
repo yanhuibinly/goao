@@ -156,7 +156,7 @@ func getBytes(key interface{}) ([]byte, error) {
 }
 
 func (g *GoAo) SetSPassword(sps string) {
-	g.ph.sPassport = sps
+	g.ph.SetSPassword(sps)
 }
 
 func (g *GoAo) SetDwOperatorId(operatorId int64) {
