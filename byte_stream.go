@@ -10,7 +10,7 @@ import (
 )
 
 type ByteStream struct {
-	readWrite  bool
+	realWrite  bool
 	iOffset    int
 	byPackage  []byte
 	dwLength   int
@@ -21,13 +21,13 @@ type ByteStream struct {
 func NewByteStream() *ByteStream {
 	bs := &ByteStream{}
 	bs.bGood = true
-	bs.readWrite = true
+	bs.realWrite = true
 	bs.iOffset = 0
 	return bs
 }
 
-func (b *ByteStream) SetRealWrite(readWrite bool) {
-	b.readWrite = readWrite
+func (b *ByteStream) SetRealWrite(realWrite bool) {
+	b.realWrite = realWrite
 }
 
 func (b *ByteStream) GetWrittenLength() int {
@@ -36,7 +36,7 @@ func (b *ByteStream) GetWrittenLength() int {
 
 func (b *ByteStream) PushByte(data byte) {
 
-	if !b.readWrite {
+	if !b.realWrite {
 		b.iOffset++
 		return
 	}
@@ -63,7 +63,7 @@ func (b *ByteStream) PopByte() (byte, error) {
 
 func (b *ByteStream) PushUint64(data uint64) {
 
-	if !b.readWrite {
+	if !b.realWrite {
 		b.iOffset += 17
 		return
 	}
@@ -128,7 +128,7 @@ func (b *ByteStream) PopInt64() (int64, error) {
 
 func (b *ByteStream) PushUint32(data uint32) {
 
-	if !b.readWrite {
+	if !b.realWrite {
 		b.iOffset += 4
 		return
 	}
@@ -148,7 +148,7 @@ func (b *ByteStream) PushUint32(data uint32) {
 /*
 func (b *ByteStream) PushUint32FromInt64(data64 int64) {
 
-	if !b.readWrite {
+	if !b.realWrite {
 		b.iOffset += 4
 		return
 	}
@@ -210,7 +210,7 @@ func (b *ByteStream) PushUint16(data uint16) {
 
 	//tData := NewUint16t(data)
 
-	if !b.readWrite {
+	if !b.realWrite {
 		b.iOffset += 2 //tData.GetSize()
 		return
 	}
@@ -273,7 +273,7 @@ func (b *ByteStream) PushBytes(data []byte, length int) {
 		b.PushUint32(uint32(lgh))
 	}
 
-	if !b.readWrite {
+	if !b.realWrite {
 
 		b.iOffset += lgh
 		return
@@ -435,5 +435,5 @@ func (b *ByteStream) Reset(data []byte, length int) {
 	b.iBufLength = length
 	b.iOffset = 0
 	b.bGood = true
-	b.readWrite = true
+	b.realWrite = true
 }

@@ -80,19 +80,19 @@ func Test_CallCheckLoginByUid(t *testing.T) {
 
 	var uid int64
 
-	uid = 1000072894
+	uid = 1000159002
 
-	skey := "H5BEEE7D991"
+	skey := "H5C5052567"
 
 	var req = NewRequest()
 
 	req.Host = "172.172.177.5:53101"
 
-	req.MachineKey = "5680a103c606e"
+	req.MachineKey = "coc"
 
 	req.SceneId = 1
 
-	req.Source = "go ao test"
+	req.Source = "coc"
 
 	goTest := New()
 
@@ -110,4 +110,38 @@ func Test_CallCheckLoginByUid(t *testing.T) {
 		t.Errorf("response is %v,err is %s", res, err.Error())
 	}
 	t.Errorf("response is %v", aoRes.Result)
+}
+
+func Test_CallReceiveCoupon(t *testing.T) {
+	var uid uint64
+
+	uid = 1000159002
+
+	var req = NewRequest()
+
+	req.Host = "172.172.177.29:53101"
+
+	req.MachineKey = "5680a103c606e"
+
+	req.SceneId = 1
+
+	req.Source = "go ao test"
+
+	aoReq := NewAoUserReceiveCouponReq()
+
+	goTest := New()
+
+	aoReq.Uid = uid
+	aoReq.ResourceBatchMd5 = "36a73cbeed6f7745979e2bef206b31d9"
+
+	aoRsp := NewAoUserReceiveCouponRsp()
+
+	res, err := goTest.Call(req, aoReq, aoRsp)
+
+	if err != nil {
+		t.Errorf("response is %v,err is %s", res, err.Error())
+	}
+	if aoRsp.Result != 0 {
+		t.Errorf("response is %v", aoRsp)
+	}
 }
