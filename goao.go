@@ -6,9 +6,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/fatih/pool"
+	"github.com/tonyjt/tgo"
 	"net"
 	"strings"
-	"time"
+	"sync"
+	//"time"
 )
 
 type GoAo struct {
@@ -27,6 +30,91 @@ func New() *GoAo {
 	return goao
 }
 
+var (
+	poolsAo map[string]pool.Pool = make(map[string]pool.Pool)
+
+	poolMux sync.Mutex
+)
+
+func (g *GoAo) dail(host string) (net.Conn, error) {
+	c, err := net.Dial("tcp", host)
+	if err != nil {
+		//UtilLogErrorf("open redis pool error: %s", err.Error())
+		return nil, errors.New(fmt.Sprintf("open ao pool error: %s", err.Error()))
+	}
+	return c, err
+}
+func (g *GoAo) GetConn(host string) (net.Conn, error) {
+
+	poolAo := poolsAo[host]
+
+	if poolAo == nil {
+		poolMux.Lock()
+
+		defer poolMux.Unlock()
+
+		poolAo := poolsAo[host]
+
+		if poolAo == nil {
+			var errPool error
+
+			var newPool pool.Pool
+			newPool, errPool = pool.NewChannelPool(1, 1000, func() (net.Conn, error) {
+				return g.dail(host)
+			})
+
+			if errPool != nil {
+				return nil, errors.New(fmt.Sprintf("create ao pool channel error: %s", errPool.Error()))
+			}
+			poolsAo[host] = newPool
+		}
+	}
+
+	poolAo = poolsAo[host]
+
+	if poolAo != nil {
+
+		conn, err := poolAo.Get()
+
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("open ao pool error: %s", err.Error()))
+		}
+
+		return conn, err
+	}
+
+	return nil, errors.New("ao pool is null")
+
+}
+
+func (g *GoAo) redailConn(c net.Conn, host string) (net.Conn, error) {
+
+	//var one []byte
+
+	//tgo.UtilLogError("ao connection reset try")
+
+	//if _, err := c.Read(one); err != nil {
+	//链接断开了
+	tgo.UtilLogError("ao connection from pool redail")
+
+	cp := c.(*pool.PoolConn)
+
+	cp.Conn.Close()
+
+	var err error
+	cp.Conn, err = g.dail(host)
+
+	if err != nil {
+		tgo.UtilLogErrorf("ao connection pool redail failed:%s", err.Error())
+		return cp, errors.New(fmt.Sprintf("redail failed,%s", err.Error()))
+	}
+	return cp, nil
+
+	//}
+
+	//return false, c, nil
+}
+
 func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error) {
 	if req == nil || iao == nil {
 		return nil, errors.New("request or iao is null")
@@ -39,22 +127,49 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 		return nil, errors.New("cmdId is invalid")
 	}
 
-	conn, errConn := net.Dial("tcp", req.Host)
+	conn, errConn := g.GetConn(req.Host)
 
 	if errConn != nil {
 		return nil, errConn
 	}
-
 	defer conn.Close()
 
-	conn.SetDeadline(time.Now().Add(3000 * time.Millisecond))
+	//conn.SetReadDeadline(time.Now().Add(1 * time.Second))
 
 	dataWrite := g.serialize(iao, req)
+	/*
+		var errRedail error
+		conn, errRedail = g.redailConn(conn, req.Host)
 
+		if errRedail == nil {
+			_, errWrite := conn.Write(dataWrite)
+
+			if errWrite != nil {
+				return nil, errWrite
+			}
+		} else {
+			return nil, errRedail
+		}
+	*/
 	_, errWrite := conn.Write(dataWrite)
 
 	if errWrite != nil {
-		return nil, errWrite
+
+		tgo.UtilLogErrorf("write data to ao failed:%s", errWrite)
+
+		var errRedail error
+		conn, errRedail = g.redailConn(conn, req.Host)
+
+		if errRedail == nil {
+			_, errWrite = conn.Write(dataWrite)
+
+			if errWrite != nil {
+				return nil, errWrite
+			}
+		} else {
+			return nil, errRedail
+		}
+
 	}
 
 	var byteStx = make([]byte, 2)
@@ -62,6 +177,22 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	_, errRead := conn.Read(byteStx)
 
 	if errRead != nil {
+
+		tgo.UtilLogErrorf("read byte stx failed:%s", errRead)
+		/*
+			var errRedail error
+
+			conn, errRedail = g.redailConn(conn, req.Host)
+
+			if errRedail == nil {
+				_, errRead = conn.Read(byteStx)
+
+				if errRead != nil {
+					return nil, errRead
+				}
+			} else {
+				return nil, errRedail
+			}*/
 		return nil, errRead
 	}
 
@@ -74,6 +205,21 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	_, errRead = conn.Read(byteLength)
 
 	if errRead != nil {
+		tgo.UtilLogErrorf("read byte length failed:%s", errRead)
+
+		/*
+			var errRedail error
+			conn, errRedail = g.redailConn(conn, req.Host)
+
+			if errRedail == nil {
+				_, errRead = conn.Read(byteLength)
+
+				if errRead != nil {
+					return nil, errRead
+				}
+			} else {
+				return nil, errRedail
+			}*/
 		return nil, errRead
 	}
 
@@ -84,6 +230,21 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	_, errRead = conn.Read(byteRes)
 
 	if errRead != nil {
+
+		tgo.UtilLogErrorf("read response failed:%s", errRead)
+		/*
+			var errRedail error
+			conn, errRedail = g.redailConn(conn, req.Host)
+
+			if errRedail == nil {
+				_, errRead = conn.Read(byteRes)
+
+				if errRead != nil {
+					return nil, errRead
+				}
+			} else {
+				return nil, errRedail
+			}*/
 		return nil, errRead
 	}
 

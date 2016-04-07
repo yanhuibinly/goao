@@ -168,7 +168,7 @@ func (b *ByteStream) PushUint32FromInt64(data64 int64) {
 func (b *ByteStream) PopUint() (int, error) {
 	if !b.bGood || (b.iOffset+4 > b.iBufLength) {
 		b.bGood = false
-		return 0, errors.New("PopUint32 ERROR")
+		return 0, errors.New("PopUint ERROR")
 	}
 
 	dataBytes := b.byPackage[b.iOffset : b.iOffset+4]
