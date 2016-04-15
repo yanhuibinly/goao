@@ -4,12 +4,6 @@ type AoUserRecvCouponParamXXOO struct {
 	AoXXOO
 
 	/**
-	 * 版本 >= 0
-	 */
-
-	Version_u uint8
-
-	/**
 	 * 批次号MD5值
 	 *
 	 * 版本 >= 0

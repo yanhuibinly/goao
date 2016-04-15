@@ -2,6 +2,7 @@ package goao
 
 type AoXXOO struct {
 	Version          uint32 //<uint32_t> 版本号
+	Version_u        uint8
 	AddTime          uint32 //<uint32_t> 添加时间
 	AddTime_u        uint8
 	LastUpdateTime   uint32 //<uint32_t> 最后修改时间
@@ -18,4 +19,8 @@ func (a *AoXXOO) Compat(bs *ByteStream, classLen uint32, startPop int) {
 		bs.PopUint8()
 	}
 	/**********************为了支持多个版本的客户端************************/
+}
+
+type IAoXXOO interface {
+	Serialize(bs *ByteStream) bool
 }

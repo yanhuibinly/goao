@@ -346,7 +346,17 @@ func (b *ByteStream) PopString() (string, error) {
 	}
 	return "", nil
 }
+func (b *ByteStream) PushMapXXOO(data map[interface{}]IAoXXOO) {
 
+	length := len(data)
+
+	b.PushUint32(uint32(length))
+
+	for key, value := range data {
+		b.PushObject(key)
+		value.Serialize(b)
+	}
+}
 func (b *ByteStream) PopMap(keyType reflect.Type, valueType reflect.Type) (map[interface{}]interface{}, error) {
 
 	size, err := b.PopUint32()
@@ -392,7 +402,27 @@ func (b *ByteStream) PopBitSet() ([]uint8, error) {
 
 	return data, nil
 }
-
+func (b *ByteStream) PushObject(data interface{}) {
+	switch data.(type) {
+	case uint8:
+		b.PushUint8(data.(uint8))
+		break
+	case uint16:
+		b.PushUint16(data.(uint16))
+		break
+	case uint32:
+		b.PushUint32(data.(uint32))
+		break
+	case uint64:
+		b.PushUint64(data.(uint64))
+		break
+	case string:
+		b.PushString(data.(string))
+		break
+	default:
+		break
+	}
+}
 func (b *ByteStream) PopObject(dataType reflect.Type) (data interface{}, err error) {
 
 	switch dataType.Kind() {
