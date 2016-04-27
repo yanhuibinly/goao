@@ -11,7 +11,7 @@ import (
 	"net"
 	"strings"
 	"sync"
-	//"time"
+	"time"
 )
 
 type GoAo struct {
@@ -39,7 +39,6 @@ var (
 func (g *GoAo) dail(host string) (net.Conn, error) {
 	c, err := net.Dial("tcp", host)
 	if err != nil {
-		//UtilLogErrorf("open redis pool error: %s", err.Error())
 		return nil, errors.New(fmt.Sprintf("open ao pool error: %s", err.Error()))
 	}
 	return c, err
@@ -59,7 +58,7 @@ func (g *GoAo) GetConn(host string) (net.Conn, error) {
 			var errPool error
 
 			var newPool pool.Pool
-			newPool, errPool = pool.NewChannelPool(1, 1000, func() (net.Conn, error) {
+			newPool, errPool = pool.NewChannelPool(1, 500, func() (net.Conn, error) {
 				return g.dail(host)
 			})
 
@@ -132,25 +131,15 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	if errConn != nil {
 		return nil, errConn
 	}
+
 	defer conn.Close()
 
-	//conn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+
+	defer conn.SetReadDeadline(time.Now().Add(72000 * time.Hour))
 
 	dataWrite := g.serialize(iao, req)
-	/*
-		var errRedail error
-		conn, errRedail = g.redailConn(conn, req.Host)
 
-		if errRedail == nil {
-			_, errWrite := conn.Write(dataWrite)
-
-			if errWrite != nil {
-				return nil, errWrite
-			}
-		} else {
-			return nil, errRedail
-		}
-	*/
 	_, errWrite := conn.Write(dataWrite)
 
 	if errWrite != nil {
@@ -169,7 +158,6 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 		} else {
 			return nil, errRedail
 		}
-
 	}
 
 	var byteStx = make([]byte, 2)
@@ -179,9 +167,9 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	if errRead != nil {
 
 		tgo.UtilLogErrorf("read byte stx failed:%s", errRead)
-		/*
-			var errRedail error
 
+		if errRead.Error() == "connection reset by peer" {
+			var errRedail error
 			conn, errRedail = g.redailConn(conn, req.Host)
 
 			if errRedail == nil {
@@ -192,7 +180,13 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 				}
 			} else {
 				return nil, errRedail
-			}*/
+			}
+		} else {
+
+			conn, _ = g.redailConn(conn, req.Host)
+
+		}
+
 		return nil, errRead
 	}
 
@@ -207,19 +201,6 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	if errRead != nil {
 		tgo.UtilLogErrorf("read byte length failed:%s", errRead)
 
-		/*
-			var errRedail error
-			conn, errRedail = g.redailConn(conn, req.Host)
-
-			if errRedail == nil {
-				_, errRead = conn.Read(byteLength)
-
-				if errRead != nil {
-					return nil, errRead
-				}
-			} else {
-				return nil, errRedail
-			}*/
 		return nil, errRead
 	}
 
@@ -232,19 +213,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	if errRead != nil {
 
 		tgo.UtilLogErrorf("read response failed:%s", errRead)
-		/*
-			var errRedail error
-			conn, errRedail = g.redailConn(conn, req.Host)
 
-			if errRedail == nil {
-				_, errRead = conn.Read(byteRes)
-
-				if errRead != nil {
-					return nil, errRead
-				}
-			} else {
-				return nil, errRedail
-			}*/
 		return nil, errRead
 	}
 
