@@ -6,12 +6,13 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/fatih/pool"
-	"github.com/tonyjt/tgo"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fatih/pool"
+	"github.com/tonyjt/tgo"
 )
 
 type GoAo struct {

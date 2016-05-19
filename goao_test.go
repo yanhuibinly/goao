@@ -145,3 +145,36 @@ func Test_CallReceiveCoupon(t *testing.T) {
 		t.Errorf("response is %v", aoRsp)
 	}
 }
+
+func Test_CallSkuBatch(t *testing.T) {
+	var skuid uint64
+
+	skuid = uint64(1061)
+
+	var req = NewRequest()
+
+	req.Host = "172.172.177.2:53101"
+
+	req.MachineKey = "MachineKey"
+
+	req.SceneId = 1
+
+	req.Source = "sourcego1"
+
+	aoUserReq := NewAoSkuBatchGetInfoReq()
+
+	goTest := New()
+
+	aoUserReq.Skuid = append(aoUserReq.Skuid, skuid)
+
+	aoRsp := NewAoSkuBatchGetInfoRsp()
+
+	res, err := goTest.Call(req, aoUserReq, aoRsp)
+
+	if err != nil {
+		t.Errorf("response is %v,err is %s", res, err.Error())
+	}
+	if aoRsp.Result != 0 {
+		t.Errorf("response is %v", aoRsp)
+	}
+}

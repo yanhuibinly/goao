@@ -8,6 +8,7 @@ type Request struct {
 	SceneId    uint32                 //场景id
 	InReserve  string                 //编码（如utf8)
 	Paras      map[string]interface{} //参数
+	Option     uint32
 }
 
 func NewRequest() *Request {
