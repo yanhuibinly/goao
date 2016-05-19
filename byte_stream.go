@@ -3,293 +3,580 @@ package goao
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/gob"
 	"errors"
 	"fmt"
-	"net"
+	"reflect"
+	"strconv"
 	"strings"
-	"sync"
-	"time"
-
-	"github.com/fatih/pool"
-	"github.com/tonyjt/tgo"
 )
 
-type GoAo struct {
-	ph      *Pkg
-	stx     uint16
-	byteStx byte
-	etx     byte
+type ByteStream struct {
+	realWrite  bool
+	iOffset    int
+	byPackage  []byte
+	dwLength   int
+	bGood      bool
+	iBufLength int
 }
 
-func New() *GoAo {
-	goao := &GoAo{}
-	goao.ph = NewPkg()
-	goao.stx = 0x55AA
-	goao.byteStx = 2
-	goao.etx = 3
-	return goao
+func NewByteStream() *ByteStream {
+	bs := &ByteStream{}
+	bs.bGood = true
+	bs.realWrite = true
+	bs.iOffset = 0
+	return bs
 }
 
-var (
-	poolsAo map[string]pool.Pool = make(map[string]pool.Pool)
+func (b *ByteStream) SetRealWrite(realWrite bool) {
+	b.realWrite = realWrite
+}
 
-	poolMux sync.Mutex
-)
+func (b *ByteStream) GetWrittenLength() int {
+	return b.iOffset
+}
 
-func (g *GoAo) dail(host string) (net.Conn, error) {
-	c, err := net.Dial("tcp", host)
+func (b *ByteStream) PushByte(data byte) {
+
+	if !b.realWrite {
+		b.iOffset++
+		return
+	}
+
+	b.byPackage = append(b.byPackage, data)
+
+	b.iOffset++
+
+}
+
+func (b *ByteStream) PopByte() (byte, error) {
+
+	if !b.bGood || (b.iOffset+1 > b.iBufLength) {
+		b.bGood = false
+		return 0, errors.New("popByte ERROR")
+	}
+
+	data := b.byPackage[b.iOffset]
+
+	b.iOffset++
+
+	return data, nil
+}
+
+func (b *ByteStream) PushUint64(data uint64) {
+
+	if !b.realWrite {
+		b.iOffset += 17
+		return
+	}
+	byteData := fmt.Sprintf("%016x", data)
+
+	b.PushBytes([]byte(byteData), 16)
+
+	b.PushByte(0)
+}
+
+func (b *ByteStream) PopUint64() (uint64, error) {
+
+	byteData, err := b.PopBytes(16)
+
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("open ao pool error: %s", err.Error()))
+		return 0, err
 	}
-	return c, err
+	b.PopByte()
+	//fmt.Println("uint:", byteData, ",offset", b.iOffset)
+
+	strData := strings.TrimLeft(string(byteData), "0")
+
+	if strData == "" {
+		return 0, nil
+	}
+
+	data, err := strconv.ParseUint(strData, 16, 64)
+
+	return data, err
 }
-func (g *GoAo) GetConn(host string) (net.Conn, error) {
 
-	poolAo := poolsAo[host]
+func (b *ByteStream) PopInt64() (int64, error) {
 
-	if poolAo == nil {
-		poolMux.Lock()
+	byteData, err := b.PopBytes(16)
 
-		defer poolMux.Unlock()
+	if err != nil {
+		return 0, err
+	}
+	b.PopByte()
 
-		poolAo := poolsAo[host]
+	strData := strings.TrimLeft(string(byteData), "0")
 
-		if poolAo == nil {
-			var errPool error
-
-			var newPool pool.Pool
-			newPool, errPool = pool.NewChannelPool(1, 500, func() (net.Conn, error) {
-				return g.dail(host)
-			})
-
-			if errPool != nil {
-				return nil, errors.New(fmt.Sprintf("create ao pool channel error: %s", errPool.Error()))
-			}
-			poolsAo[host] = newPool
-		}
+	if strData == "" {
+		return 0, nil
 	}
 
-	poolAo = poolsAo[host]
+	data, errParse := strconv.ParseInt(strData, 16, 64)
 
-	if poolAo != nil {
+	return data, errParse
 
-		conn, err := poolAo.Get()
+}
 
+func (b *ByteStream) PushUint64Set(data []uint64) {
+	length := len(data)
+
+	b.PushUint32(uint32(length))
+
+	for item := range data {
+		b.PushUint64(data[item])
+	}
+}
+
+func (b *ByteStream) PopUint64Set() ([]uint64, error) {
+
+	size, err := b.PopUint32()
+
+	if err != nil {
+		return nil, err
+	}
+	var data []uint64
+
+	for i := uint32(0); i < size; i++ {
+		var d uint64
+		d, err = b.PopUint64()
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("open ao pool error: %s", err.Error()))
+			return data, err
 		}
-
-		return conn, err
+		data = append(data, d)
 	}
 
-	return nil, errors.New("ao pool is null")
+	return data, nil
+}
+
+func (b *ByteStream) PushUint32(data uint32) {
+
+	if !b.realWrite {
+		b.iOffset += 4
+		return
+	}
+
+	b.byPackage = append(b.byPackage, byte(data>>24))
+
+	b.byPackage = append(b.byPackage, byte(data>>16))
+
+	b.byPackage = append(b.byPackage, byte(data>>8))
+
+	b.byPackage = append(b.byPackage, byte(data))
+
+	b.iOffset += 4
 
 }
 
-func (g *GoAo) redailConn(c net.Conn, host string) (net.Conn, error) {
+func (b *ByteStream) PushInt32(data int32) {
 
-	//var one []byte
+	if !b.realWrite {
+		b.iOffset += 4
+		return
+	}
 
-	//tgo.UtilLogError("ao connection reset try")
+	b.byPackage = append(b.byPackage, byte(data>>24))
 
-	//if _, err := c.Read(one); err != nil {
-	//链接断开了
-	tgo.UtilLogError("ao connection from pool redail")
+	b.byPackage = append(b.byPackage, byte(data>>16))
 
-	cp := c.(*pool.PoolConn)
+	b.byPackage = append(b.byPackage, byte(data>>8))
 
-	cp.Conn.Close()
+	b.byPackage = append(b.byPackage, byte(data))
 
-	var err error
-	cp.Conn, err = g.dail(host)
+	b.iOffset += 4
+
+}
+
+/*
+func (b *ByteStream) PushUint32FromInt64(data64 int64) {
+
+	if !b.realWrite {
+		b.iOffset += 4
+		return
+	}
+	data := uint32(data64)
+
+	b.byPackage = append(b.byPackage, byte(data>>24))
+
+	b.byPackage = append(b.byPackage, byte(data>>16))
+
+	b.byPackage = append(b.byPackage, byte(data>>8))
+
+	b.byPackage = append(b.byPackage, byte(data))
+
+	b.iOffset += 4
+}*/
+
+func (b *ByteStream) PopUint() (int, error) {
+	if !b.bGood || (b.iOffset+4 > b.iBufLength) {
+		b.bGood = false
+		return 0, errors.New("PopUint ERROR")
+	}
+
+	dataBytes := b.byPackage[b.iOffset : b.iOffset+4]
+
+	b.iOffset += 4
+
+	strData := strings.TrimLeft(string(dataBytes), "0")
+
+	if strData == "" {
+		return 0, nil
+	}
+	data, errParse := strconv.ParseInt(strData, 16, 10)
+
+	if errParse != nil {
+		return 0, errParse
+	}
+
+	return int(data), nil
+}
+func (b *ByteStream) PopUint32() (uint32, error) {
+
+	//tData := NewUint16t(data)
+
+	if !b.bGood || (b.iOffset+4 > b.iBufLength) {
+		b.bGood = false
+		return 0, errors.New("PopUint32 ERROR")
+	}
+
+	dataBytes := b.byPackage[b.iOffset : b.iOffset+4]
+
+	b.iOffset += 4
+
+	data := binary.BigEndian.Uint32(dataBytes)
+
+	return data, nil
+}
+
+func (b *ByteStream) PopInt32() (int32, error) {
+
+	//tData := NewUint16t(data)
+
+	if !b.bGood || (b.iOffset+4 > b.iBufLength) {
+		b.bGood = false
+		return 0, errors.New("PopUint32 ERROR")
+	}
+
+	dataBytes := b.byPackage[b.iOffset : b.iOffset+4]
+
+	b.iOffset += 4
+
+	var data int32
+
+	b_buf := bytes.NewBuffer(dataBytes)
+
+	binary.Read(b_buf, binary.BigEndian, &data)
+
+	return data, nil
+}
+
+func (b *ByteStream) PushUint16(data uint16) {
+
+	//tData := NewUint16t(data)
+
+	if !b.realWrite {
+		b.iOffset += 2 //tData.GetSize()
+		return
+	}
+
+	b.byPackage = append(b.byPackage, byte(data>>8))
+
+	b.byPackage = append(b.byPackage, byte(data))
+
+	b.iOffset += 2
+
+}
+
+func (b *ByteStream) PopUint16() (uint16, error) {
+
+	//tData := NewUint16t(data)
+
+	if !b.bGood || (b.iOffset+2 > b.iBufLength) {
+		b.bGood = false
+		return 0, errors.New("PopUint16 ERROR")
+	}
+
+	dataBytes := b.byPackage[b.iOffset : b.iOffset+2]
+
+	b.iOffset += 2
+
+	data := binary.BigEndian.Uint16(dataBytes)
+
+	return data, nil
+}
+
+func (b *ByteStream) PushUint8(data uint8) {
+
+	//tData := NewUint16t(data)
+
+	b.PushByte(byte(data))
+}
+
+func (b *ByteStream) PopUint8() (uint8, error) {
+
+	//tData := NewUint16t(data)
+
+	byteData, err := b.PopByte()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint8(byteData), nil
+}
+
+func (b *ByteStream) PushBytes(data []byte, length int) {
+
+	lgh := len(data)
+
+	if lgh == 0 {
+		b.PushUint32(0)
+		return
+	}
+
+	if length == 0 {
+		b.PushUint32(uint32(lgh))
+	}
+
+	if !b.realWrite {
+
+		b.iOffset += lgh
+		return
+	}
+
+	b.byPackage = append(b.byPackage, data...)
+
+	b.iOffset += lgh
+
+}
+
+func (b *ByteStream) PopBytes(length int) ([]byte, error) {
+
+	if length < 0 || length > 2097152 {
+		return nil, errors.New("popBytes Error: len must >=0 and <=2097152")
+	}
+
+	if !b.bGood || (b.iOffset+length > b.iBufLength) {
+		b.bGood = false
+		return nil, errors.New("PushBytes ERROR")
+	}
+
+	if length > 0 {
+
+		data := b.byPackage[b.iOffset : b.iOffset+length]
+		b.iOffset += length
+
+		return data, nil
+	}
+
+	return nil, nil
+}
+
+func (b *ByteStream) PushString(data string) {
+
+	/*if b.decodeCharset != "" && len(b.decodeCharset) > 2 {
+		byteData := binary.BigEndian binary.BigEndian.Uint16(dataBytes)
+	}
+	*/
+	b.PushBytes([]byte(data), 0)
+
+}
+func (b *ByteStream) PopString() (string, error) {
+	if !b.bGood || (b.iOffset+4 > b.iBufLength) {
+		b.bGood = false
+		return "", errors.New(fmt.Sprintf("pop int ERROR: !m_bGood || (%d + 4) > %d", b.iBufLength))
+	}
+
+	intLen, err := b.PopUint32()
 
 	if err != nil {
-		tgo.UtilLogErrorf("ao connection pool redail failed:%s", err.Error())
-		return cp, errors.New(fmt.Sprintf("redail failed,%s", err.Error()))
+		return "", err
 	}
-	return cp, nil
 
-	//}
+	if !b.bGood || (b.iOffset+int(intLen) > b.iBufLength) {
+		b.bGood = false
+		return "", errors.New(fmt.Sprintf("pop string ERROR: !m_bGood || (%d + %d) > %d", b.iOffset, intLen, b.iBufLength))
+	}
 
-	//return false, c, nil
+	if intLen > 2097152 {
+		b.bGood = false
+		return "", errors.New("len > MAX_LENGTH")
+	}
+
+	if intLen > 0 {
+		buf := b.byPackage[b.iOffset : b.iOffset+int(intLen)]
+		b.iOffset += int(intLen)
+
+		return string(buf), nil
+	}
+	return "", nil
 }
 
-func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error) {
-	if req == nil || iao == nil {
-		return nil, errors.New("request or iao is null")
+func (b *ByteStream) PushStringSet(data []string) {
+	length := len(data)
+
+	b.PushUint32(uint32(length))
+
+	for item := range data {
+		b.PushString(data[item])
 	}
-
-	if strings.Trim(req.Host, " ") == "" {
-		return nil, errors.New("address is null")
-	}
-	if iao.GetCmdId() <= 0 {
-		return nil, errors.New("cmdId is invalid")
-	}
-
-	conn, errConn := g.GetConn(req.Host)
-
-	if errConn != nil {
-		return nil, errConn
-	}
-
-	defer conn.Close()
-
-	conn.SetReadDeadline(time.Now().Add(30 * time.Second))
-
-	defer conn.SetReadDeadline(time.Now().Add(72000 * time.Hour))
-
-	dataWrite := g.serialize(iao, req)
-
-	_, errWrite := conn.Write(dataWrite)
-
-	if errWrite != nil {
-
-		tgo.UtilLogErrorf("write data to ao failed:%s", errWrite)
-
-		var errRedail error
-		conn, errRedail = g.redailConn(conn, req.Host)
-
-		if errRedail == nil {
-			_, errWrite = conn.Write(dataWrite)
-
-			if errWrite != nil {
-				return nil, errWrite
-			}
-		} else {
-			return nil, errRedail
-		}
-	}
-
-	var byteStx = make([]byte, 2)
-
-	_, errRead := conn.Read(byteStx)
-
-	if errRead != nil {
-
-		tgo.UtilLogErrorf("read byte stx failed:%s", errRead)
-
-		if errRead.Error() == "connection reset by peer" {
-			var errRedail error
-			conn, errRedail = g.redailConn(conn, req.Host)
-
-			if errRedail == nil {
-				_, errRead = conn.Read(byteStx)
-
-				if errRead != nil {
-					return nil, errRead
-				}
-			} else {
-				return nil, errRedail
-			}
-		} else {
-
-			conn, _ = g.redailConn(conn, req.Host)
-
-		}
-
-		return nil, errRead
-	}
-
-	if binary.BigEndian.Uint16(byteStx) != 21930 {
-		return nil, errors.New(fmt.Sprintf("stx is error :%d", byteStx))
-	}
-
-	var byteLength = make([]byte, 4)
-
-	_, errRead = conn.Read(byteLength)
-
-	if errRead != nil {
-		tgo.UtilLogErrorf("read byte length failed:%s", errRead)
-
-		return nil, errRead
-	}
-
-	dwLength := binary.BigEndian.Uint32(byteLength)
-
-	var byteRes = make([]byte, dwLength)
-
-	_, errRead = conn.Read(byteRes)
-
-	if errRead != nil {
-
-		tgo.UtilLogErrorf("read response failed:%s", errRead)
-
-		return nil, errRead
-	}
-
-	return g.unSerialize(iaoRsp, byteRes, len(byteRes))
 }
 
-func (g *GoAo) serialize(iao IAoReq, req *Request) []byte {
+func (b *ByteStream) PopStringSet() ([]string, error) {
 
-	// 计算Request包长度
-	bsdummy := NewByteStream()
-
-	bsdummy.SetRealWrite(false)
-
-	iao.Serialize(bsdummy, req)
-
-	dwBodyLen := bsdummy.GetWrittenLength()
-
-	// 计算整个包长度
-	dwPkgLength := uint32(1 + g.ph.iPkgHeadLength + dwBodyLen + 1)
-
-	// 构建包头
-	g.ph.SetDwCommand(iao.GetCmdId())
-	g.ph.SetDwLength(dwPkgLength)
-	// 构建序列化buffer
-	bs := NewByteStream()
-
-	// 序列化
-	bs.PushUint16(g.stx)
-	bs.PushUint32(dwPkgLength)
-	bs.PushByte(g.byteStx)
-	g.ph.Serialize(bs)
-
-	iao.Serialize(bs, req)
-	bs.PushByte(g.etx)
-	return bs.GetWriteBuffer()
-}
-func (g *GoAo) unSerialize(iao IAoRsp, byteRes []byte, length int) (interface{}, error) {
-
-	bs := NewByteStream()
-	bs.Reset(byteRes, length)
-
-	stx, err := bs.PopByte()
+	size, err := b.PopUint32()
 
 	if err != nil {
 		return nil, err
 	}
+	var data []string
 
-	if stx != 2 {
-		return nil, errors.New("stx is not 2")
+	for i := uint32(0); i < size; i++ {
+		var d string
+		d, err = b.PopString()
+		if err != nil {
+			return data, err
+		}
+		data = append(data, d)
 	}
 
-	g.ph.UnSerialize(bs)
+	return data, nil
+}
 
-	_, err = iao.UnSerialize(bs)
+func (b *ByteStream) PushMapXXOO(data map[interface{}]IAoXXOO) {
+
+	length := len(data)
+
+	b.PushUint32(uint32(length))
+
+	for key, value := range data {
+		b.PushObject(key)
+		value.Serialize(b)
+	}
+}
+func (b *ByteStream) PushMap(obj map[interface{}]interface{}) {
+
+	b.PushUint32(uint32(len(obj)))
+
+	for k, v := range obj {
+		b.PushObject(k)
+		b.PushObject(v)
+	}
+}
+
+func (b *ByteStream) PopMap(keyType reflect.Type, valueType reflect.Type) (map[interface{}]interface{}, error) {
+
+	size, err := b.PopUint32()
 
 	if err != nil {
 		return nil, err
 	}
-	return iao, nil
+	var obj map[interface{}]interface{}
+
+	for i := uint32(0); i < size; i++ {
+
+		key, errKey := b.PopObject(keyType)
+
+		value, errValue := b.PopObject(valueType)
+
+		if errKey != nil {
+			return nil, errKey
+		} else if errValue != nil {
+			return nil, errValue
+		}
+		obj[key] = value
+	}
+	return obj, nil
 }
 
-func getBytes(key interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(key)
+func (b *ByteStream) PushBitSet(data []uint8) {
+	length := len(data)
+
+	b.PushUint32(uint32(length))
+
+	for item := range data {
+		b.PushUint8(data[item])
+	}
+}
+func (b *ByteStream) PopBitSet() ([]uint8, error) {
+
+	size, err := b.PopUint32()
+
 	if err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	var data []uint8
+
+	for i := uint32(0); i < size; i++ {
+		var d uint8
+		d, err = b.PopUint8()
+		if err != nil {
+			return data, err
+		}
+		data = append(data, d)
+	}
+	return data, nil
+}
+func (b *ByteStream) PushObject(data interface{}) {
+	switch data.(type) {
+	case uint8:
+		b.PushUint8(data.(uint8))
+		break
+	case uint16:
+		b.PushUint16(data.(uint16))
+		break
+	case uint32:
+		b.PushUint32(data.(uint32))
+		break
+	case uint64:
+		b.PushUint64(data.(uint64))
+		break
+	case string:
+		b.PushString(data.(string))
+		break
+	default:
+		break
+	}
+}
+func (b *ByteStream) PopObject(dataType reflect.Type) (data interface{}, err error) {
+
+	switch dataType.Kind() {
+	case reflect.Uint8:
+		data, err = b.PopUint8()
+		break
+	case reflect.Uint16:
+		data, err = b.PopUint16()
+		break
+	case reflect.Uint32:
+		data, err = b.PopUint32()
+		break
+	case reflect.Uint64:
+		data, err = b.PopUint64()
+		break
+	case reflect.String:
+		data, err = b.PopString()
+		break
+	default:
+		data = nil
+		err = errors.New("unsupport type")
+		break
+	}
+	return nil, err
 }
 
-func (g *GoAo) SetSPassword(sps string) {
-	g.ph.SetSPassword(sps)
+func (b *ByteStream) IsGood() bool {
+	return b.bGood
 }
 
-func (g *GoAo) SetDwOperatorId(operatorId int64) {
-	g.ph.SetDwOperatorId(operatorId)
+func (b *ByteStream) GetWriteBuffer() []byte {
+	return b.byPackage
+}
+
+func (b *ByteStream) GetReadLength() int {
+	return b.iOffset
+}
+func (b *ByteStream) Reset(data []byte, length int) {
+	b.byPackage = data
+	b.iBufLength = length
+	b.iOffset = 0
+	b.bGood = true
+	b.realWrite = true
 }
