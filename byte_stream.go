@@ -276,7 +276,14 @@ func (g *GoAo) unSerialize(iao IAoRsp, byteRes []byte, length int) (interface{},
 	return iao, nil
 }
 
-	return b.bGood
+func getBytes(key interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(key)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (g *GoAo) SetSPassword(sps string) {
