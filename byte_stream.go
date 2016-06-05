@@ -469,8 +469,7 @@ func (b *ByteStream) PopMap(keyType reflect.Type, valueType reflect.Type) (map[i
 	if err != nil {
 		return nil, err
 	}
-	var obj map[interface{}]interface{}
-
+	obj := make(map[interface{}]interface{})
 	for i := uint32(0); i < size; i++ {
 
 		key, errKey := b.PopObject(keyType)
