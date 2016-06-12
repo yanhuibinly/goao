@@ -486,6 +486,13 @@ func (b *ByteStream) PopMap(keyType reflect.Type, valueType reflect.Type) (map[i
 	return obj, nil
 }
 
+func (b *ByteStream) PushSet(obj []IAoXXOO) {
+	b.PushUint32(uint32(len(obj)))
+	for _, v := range obj {
+		v.Serialize(b)
+	}
+}
+
 func (b *ByteStream) PushBitSet(data []uint8) {
 	length := len(data)
 
@@ -514,6 +521,35 @@ func (b *ByteStream) PopBitSet() ([]uint8, error) {
 	}
 	return data, nil
 }
+
+func (b *ByteStream) PushBool(data bool) {
+
+	if !b.realWrite {
+		b.iOffset += 1 //tData.GetSize()
+		return
+	}
+	var bt byte
+	if data {
+		bt = 1
+	} else {
+		bt = 0
+	}
+	b.byPackage = append(b.byPackage, bt)
+}
+
+func (b *ByteStream) PopBool() (bool, error) {
+	byteData, err := b.PopByte()
+	if err != nil {
+		return false, err
+	}
+
+	if byteData == 0 {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
 func (b *ByteStream) PushObject(data interface{}) {
 	switch data.(type) {
 	case uint8:

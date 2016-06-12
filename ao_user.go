@@ -213,3 +213,67 @@ func (u *AoCheckLoginByUidRsp) UnSerialize(bs *ByteStream) (bool, error) {
 }
 
 /*CheckLoginByUid end*/
+
+/*ModifyBasicUserInfoByUid start*/
+type AoModifyBasicUserInfoByUidReq struct {
+	Uid       uint64
+	Signature string
+	AuthCode  string
+	UserInfo  *AoUserInfoXXOO
+}
+
+func NewAoModifyBasicUserInfoByUidReq() *AoModifyBasicUserInfoByUidReq {
+
+	model := &AoModifyBasicUserInfoByUidReq{}
+	model.AuthCode = "^YHN,ki8"
+	return model
+}
+
+func (u *AoModifyBasicUserInfoByUidReq) GetCmdId() uint32 {
+	return 0x40061804
+}
+func (u *AoModifyBasicUserInfoByUidReq) Serialize(bs *ByteStream, req *Request) bool {
+	bs.PushString(req.MachineKey)
+	bs.PushString(req.Source)
+	bs.PushUint32(req.SceneId)
+	bs.PushString(u.AuthCode)
+
+	u.UserInfo.Serialize(bs)
+
+	bs.PushString(req.InReserve)
+	return bs.IsGood()
+}
+
+type AoModifyBasicUserInfoByUidRsp struct {
+	AoRsp
+}
+
+func NewAoModifyBasicUserInfoByUidRsp() *AoModifyBasicUserInfoByUidRsp {
+	model := &AoModifyBasicUserInfoByUidRsp{}
+	return model
+}
+
+func (u *AoModifyBasicUserInfoByUidRsp) UnSerialize(bs *ByteStream) (bool, error) {
+
+	var errResult error
+	u.Result, errResult = bs.PopUint32()
+	if errResult != nil {
+		return false, errResult
+	}
+
+	var errMsg error
+	u.ErrMsg, errMsg = bs.PopString()
+	if errMsg != nil {
+		return false, errMsg
+	}
+	var errOutResever error
+	u.OutReserve, errOutResever = bs.PopString()
+
+	if errOutResever != nil {
+		return false, errOutResever
+	}
+
+	return bs.IsGood(), nil
+}
+
+/*ModifyBasicUserInfoByUid end*/

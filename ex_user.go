@@ -1,13 +1,13 @@
 package goao
 
 import (
-	"strconv"
 	"errors"
 	"fmt"
+	"strconv"
 )
 
 type ModelUser struct {
-	Uid              int64      `json:"uid"`
+	Uid              int64       `json:"uid"`
 	AccountType      uint8       `json:"accountType"`
 	Mobile           string      `json:"mobile"`
 	Email            string      `json:"Email"`
@@ -73,11 +73,11 @@ func ExUserGetUserInfos(uids []int64, host string, machineKey string, source str
 	info_map_struct := info_struct.Users
 
 	returnData := make(map[int64]ModelUser)
-	if err != nil{
+	if err != nil {
 
-	}else if aoRes.Result != 0 {
-		err = errors.New(fmt.Sprintf("result code is %d",aoRes.Result))
-	}else {
+	} else if aoRes.Result != 0 {
+		err = errors.New(fmt.Sprintf("result code is %d", aoRes.Result))
+	} else {
 		for uidOne, infoOne := range info_map_struct {
 			returnData[int64(uidOne)] = exGetUserInfoFromAoData(infoOne)
 		}
@@ -120,39 +120,93 @@ func exUserGetFullPhotoByPhoto(photo string) string {
 	return FullPhoto
 }
 
-func exGetUserInfoFromAoData(infoOne AoUserInfoXXOO) ModelUser{
-  u := new(ModelUser)
-  u.Uid = int64(infoOne.Uid)
-  u.AccountType = infoOne.AccountType
-  u.Mobile = infoOne.Mobile
-  u.Email = infoOne.Email
-  u.LoginAccount = infoOne.LoginAccount
-  //u.WechatOpenid = info_map_struct.WechatOpenid
-  u.WechatUnionid = infoOne.WechatUnionid
-  u.UserType = infoOne.UserType
-  //u.DiffSrcRegTime = info_map_struct.DiffSrcRegTime
-  u.Rating = infoOne.Rating
-  u.BabyInfo = infoOne.BabyInfo
-  u.RelationWithBaby = infoOne.RelationWithBaby
-  u.Nickname = exUserGetNickName(infoOne.Uid, infoOne.Nickname)
-  u.Truename = infoOne.Truename
-  u.Sex = infoOne.Sex
-  u.Birthday = infoOne.Birthday
-  u.QQNumber = infoOne.QQNumber
-  u.Phone = infoOne.Phone
-  u.Fax = infoOne.Fax
-  u.Region = infoOne.Region
-  u.Address = infoOne.Address
-  u.Community = infoOne.Community
-  u.Postcode = infoOne.Postcode
-  u.IdentityType = infoOne.IdentityType
-  u.IdentityNum = infoOne.IdentityNum
-  u.Photo = exUserGetPhoto(infoOne.Photo)
-  u.Signature = exUserGetSignature(infoOne.Signature)
+func exGetUserInfoFromAoData(infoOne AoUserInfoXXOO) ModelUser {
+	u := new(ModelUser)
+	u.Uid = int64(infoOne.Uid)
+	u.AccountType = infoOne.AccountType
+	u.Mobile = infoOne.Mobile
+	u.Email = infoOne.Email
+	u.LoginAccount = infoOne.LoginAccount
+	//u.WechatOpenid = info_map_struct.WechatOpenid
+	u.WechatUnionid = infoOne.WechatUnionid
+	u.UserType = infoOne.UserType
+	//u.DiffSrcRegTime = info_map_struct.DiffSrcRegTime
+	u.Rating = infoOne.Rating
+	u.BabyInfo = infoOne.BabyInfo
+	u.RelationWithBaby = infoOne.RelationWithBaby
+	u.Nickname = exUserGetNickName(infoOne.Uid, infoOne.Nickname)
+	u.Truename = infoOne.Truename
+	u.Sex = infoOne.Sex
+	u.Birthday = int64(infoOne.Birthday)
+	u.QQNumber = infoOne.QQNumber
+	u.Phone = infoOne.Phone
+	u.Fax = infoOne.Fax
+	u.Region = infoOne.Region
+	u.Address = infoOne.Address
+	u.Community = infoOne.Community
+	u.Postcode = infoOne.Postcode
+	u.IdentityType = infoOne.IdentityType
+	u.IdentityNum = infoOne.IdentityNum
+	u.Photo = exUserGetPhoto(infoOne.Photo)
+	u.Signature = exUserGetSignature(infoOne.Signature)
 
-  u.UserTypeName = exUserGetNameByUserType(u.UserType)
-  u.Full_photo = exUserGetFullPhotoByPhoto(u.Photo)
-  u.Short_address = ""
+	u.UserTypeName = exUserGetNameByUserType(u.UserType)
+	u.Full_photo = exUserGetFullPhotoByPhoto(u.Photo)
+	u.Short_address = ""
 
-  return *u
+	return *u
+}
+
+func ExUserModifyBasicByUid(uid int64, signature string, signatureFlag bool,
+	photo string, photoFlag bool,
+	nickName string, nickNameFlag bool,
+	userType uint8, userTypeFlag bool,
+	host string, machineKey string, source string) (int, error) {
+
+	var req = NewRequest()
+
+	req.Host = host
+
+	req.MachineKey = machineKey
+
+	req.SceneId = 1
+
+	req.Source = source
+
+	goClient := New()
+
+	aoReq := NewAoModifyBasicUserInfoByUidReq()
+
+	userInfo := NewAoUserInfoXXOO()
+
+	if signatureFlag {
+		userInfo.Signature_u = 1
+		userInfo.Signature = signature
+	}
+	if photoFlag {
+		userInfo.Photo_u = 1
+		userInfo.Photo = photo
+	}
+	if nickNameFlag {
+		userInfo.Nickname_u = 1
+		userInfo.Nickname = nickName
+	}
+	if userTypeFlag {
+		userInfo.UserType_u = 1
+		userInfo.UserType = userType
+	}
+	userInfo.Uid_u = 1
+	userInfo.Uid = uint64(uid)
+	aoReq.UserInfo = userInfo
+	aoReq.Uid = uint64(uid)
+
+	aoRes := NewAoModifyBasicUserInfoByUidRsp()
+
+	_, err := goClient.Call(req, aoReq, aoRes)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return int(aoRes.Result), nil
 }
