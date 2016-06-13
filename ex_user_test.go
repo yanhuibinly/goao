@@ -12,9 +12,11 @@ func Test_ExGetUserInfos(t *testing.T) {
 	host := "172.172.177.5:53101"
 	source := "gotest"
 	machineKey := "gotest"
-	_, err := ExUserGetUserInfos(uids, host, machineKey, source)
+	info, err := ExUserGetUserInfos(uids, host, machineKey, source)
 	if err != nil {
 		t.Errorf("error:%s", err.Error())
+	} else {
+		t.Errorf("info:%v", info)
 	}
 }
 
@@ -36,5 +38,20 @@ func Test_ExUserModify(t *testing.T) {
 		t.Errorf("error:%s", err.Error())
 	} else if code != 0 {
 		t.Errorf("code:%d", code)
+	}
+}
+
+func Test_ExUserGetByPhone(t *testing.T) {
+	host := "172.172.177.5:53101"
+	source := "gotest"
+	machineKey := "gotest"
+	phone := "13852286536"
+
+	user, err := ExUserGetUserInfoByPhone(phone, host, machineKey, source)
+
+	if err != nil {
+		t.Errorf("error:%s", err.Error())
+	} else {
+		t.Errorf("info:%v", user)
 	}
 }

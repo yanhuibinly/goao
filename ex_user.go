@@ -106,7 +106,7 @@ func exUserGetPhoto(photo string) string {
 }
 
 func exUserGetNameByUserType(userType uint8) string {
-	userTypeName := [3]string{"会员", "育儿顾问", "官方运营"}
+	userTypeName := [4]string{"会员", "育儿顾问", "官方运营", "育儿专家"}
 	return userTypeName[userType]
 }
 
@@ -209,4 +209,42 @@ func ExUserModifyBasicByUid(uid int64, signature string, signatureFlag bool,
 	}
 
 	return int(aoRes.Result), nil
+}
+
+func ExUserGetUserInfoByPhone(phone string, host string, machineKey string, source string) (*ModelUser, error) {
+
+	var req = NewRequest()
+
+	req.Host = host
+
+	req.MachineKey = machineKey
+
+	req.SceneId = 1
+
+	req.Source = source
+
+	goClient := New()
+
+	aoReq := NewAoGetUserInfoByBindInfoReq()
+	aoReq.BindInfoType = 1
+	aoReq.BindInfo = phone
+	aoRes := NewAoGetUserInfoByBindInfoRsp()
+
+	info, err := goClient.Call(req, aoReq, aoRes)
+
+	if err != nil {
+		return nil, err
+	} else if aoRes.Result != 0 {
+		err = errors.New(fmt.Sprintf("result code is %d", aoRes.Result))
+		return nil, err
+	}
+
+	info_struct := info.(*AoGetUserInfoByBindInfoRsp)
+
+	if info_struct.User != nil {
+		user := exGetUserInfoFromAoData(*info_struct.User)
+		return &user, nil
+	} else {
+		return nil, nil
+	}
 }

@@ -277,3 +277,73 @@ func (u *AoModifyBasicUserInfoByUidRsp) UnSerialize(bs *ByteStream) (bool, error
 }
 
 /*ModifyBasicUserInfoByUid end*/
+
+/*GetUserInfoByBindInfo start*/
+type AoGetUserInfoByBindInfoReq struct {
+	BindInfoType uint32 //<uint32_t> 绑定信息类型：1-手机号，2-邮箱，3-个性化账号，详见E_BINDINFO_TYPE，必填(版本>=0)
+	BindInfo     string //<std::string> 绑定信息：手机号、邮箱、个性化账号, 必填(版本>=0)
+}
+
+func NewAoGetUserInfoByBindInfoReq() *AoGetUserInfoByBindInfoReq {
+
+	model := &AoGetUserInfoByBindInfoReq{}
+	return model
+}
+
+func (u *AoGetUserInfoByBindInfoReq) GetCmdId() uint32 {
+	return 0x40061802
+}
+
+func (u *AoGetUserInfoByBindInfoReq) Serialize(bs *ByteStream, req *Request) bool {
+	bs.PushString(req.MachineKey) //<std::string> 机器码，请取cookie里面的visitkey，无法获得visitkey的可以填随机字符串，必填
+	bs.PushString(req.Source)     //<std::string> 调用来源, 请填调用方自己的源文件名称，必填
+	bs.PushUint32(req.SceneId)    //<uint32_t> 场景id：1，只获取用户信息；2，获取用户信息和宝宝信息。必填
+	bs.PushUint32(u.BindInfoType) //<uint32_t> 绑定信息类型：1-手机号，2-邮箱，3-个性化账号，详见E_BINDINFO_TYPE，必填
+	bs.PushString(u.BindInfo)     //<std::string> 绑定信息：手机号、邮箱、个性化账号, 必填
+	bs.PushString(req.InReserve)  //<std::string> 输入保留字
+
+	return bs.IsGood()
+}
+
+type AoGetUserInfoByBindInfoRsp struct {
+	AoRsp
+	User *AoUserInfoXXOO
+}
+
+func NewAoGetUserInfoByBindInfoRsp() *AoGetUserInfoByBindInfoRsp {
+	model := &AoGetUserInfoByBindInfoRsp{}
+	return model
+}
+
+func (u *AoGetUserInfoByBindInfoRsp) UnSerialize(bs *ByteStream) (bool, error) {
+	var errResult error
+	u.Result, errResult = bs.PopUint32()
+	if errResult != nil {
+		return false, errResult
+	}
+
+	userInfo := NewAoUserInfoXXOO()
+
+	errUser := userInfo.UnSerialize(bs)
+
+	if errUser != nil {
+		return false, errUser
+	}
+
+	u.User = userInfo
+	var errMsg error
+	u.ErrMsg, errMsg = bs.PopString()
+	if errMsg != nil {
+		return false, errMsg
+	}
+	var errOutResever error
+	u.OutReserve, errOutResever = bs.PopString()
+
+	if errOutResever != nil {
+		return false, errOutResever
+	}
+
+	return bs.IsGood(), nil
+}
+
+/*GetUserInfoByBindInfo end*/
