@@ -47,7 +47,7 @@ func ExUserGetUserInfos(uids []int64, host string, machineKey string, source str
 
 	req.MachineKey = machineKey
 
-	req.SceneId = 1
+	req.SceneId = 2
 
 	req.Source = source
 
@@ -247,4 +247,36 @@ func ExUserGetUserInfoByPhone(phone string, host string, machineKey string, sour
 	} else {
 		return nil, nil
 	}
+}
+
+func ExUserCheckLogin(uid int64,skey string, host string, machineKey string, source string) (bool, error) {
+
+	var req = NewRequest()
+
+	req.Host = host
+
+	req.MachineKey = machineKey
+
+	req.SceneId = 1
+
+	req.Source = source
+
+	goClient := New()
+
+	goClient.SetDwOperatorId(uid)
+
+	goClient.SetSPassword(skey)
+
+	aoReq := NewAoCheckLoginByUidReq()
+
+	aoRes := NewAoCheckLoginByUidRsp()
+
+	_, err := goClient.Call(req, aoReq, aoRes)
+
+	if err != nil {
+		return false,err
+	} else if aoRes.Result != 0 {
+		return false,nil
+	}
+	return true,nil
 }

@@ -2,6 +2,7 @@ package goao
 
 import (
 	"reflect"
+	"errors"
 )
 
 type AoUserInfoXXOO struct {
@@ -323,7 +324,7 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 	}
 	a.Uid, err = bs.PopUint64() //<uint64> uid, 用户id
 	if err != nil {
-		return err
+		return errors.New("uid error " + err.Error())
 	}
 
 	a.Uid_u, err = bs.PopUint8()
@@ -471,6 +472,7 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 	if err != nil {
 		return err
 	}
+	
 	a.RelationWithBaby, err = bs.PopUint8() //<uint8> 与宝宝关系，参见user_comm_define.h中的E_RELATION_WITH_BABY
 	if err != nil {
 		return err
@@ -505,7 +507,7 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 	}
 	a.Birthday, err = bs.PopUint64() //<int64> 生日
 	if err != nil {
-		return err
+		return errors.New("Birthday error" + err.Error())
 	}
 	a.Birthday_u, err = bs.PopUint8()
 	if err != nil {
@@ -513,7 +515,7 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 	}
 	a.QQNumber, err = bs.PopUint64() //<uint64> QQ号
 	if err != nil {
-		return err
+		return errors.New("QQNumber error" + err.Error())
 	}
 	a.QQNumber_u, err = bs.PopUint8()
 	if err != nil {
@@ -663,7 +665,7 @@ type AoBabyInfoXXOO struct {
 	Sex_u         uint8  // uint8 sex的flag位
 	Birthday      uint64 //<int64> 生日/预产期(版本>=0)
 	Birthday_u    uint8  // uint8 birthday的flag位
-	BitProperty   uint64 //<std::bitset<64> > 宝宝属性位BitSet，具体意义参见user_comm_define.h中的E_USER_PROPERTY(版本>=0)
+	BitProperty   []uint8 //<std::bitset<64> > 宝宝属性位BitSet，具体意义参见user_comm_define.h中的E_USER_PROPERTY(版本>=0)
 	BitProperty_u uint8  // uint8 bitProperty的flag位
 }
 
@@ -694,7 +696,7 @@ func (ao *AoBabyInfoXXOO) serialize_internal(bs *ByteStream) bool {
 	bs.PushUint8(ao.Sex_u)
 	bs.PushUint64(ao.Birthday)
 	bs.PushUint8(ao.Birthday_u)
-	bs.PushUint64(ao.BitProperty)
+	bs.PushBitSet(ao.BitProperty)
 	bs.PushUint8(ao.BitProperty_u)
 	bs.PushUint32(ao.AddTime)
 	bs.PushUint8(ao.AddTime_u)
@@ -719,93 +721,93 @@ func (ao *AoBabyInfoXXOO) getClassLen() int {
 func (a *AoBabyInfoXXOO) UnSerialize(bs *ByteStream) error {
 	classLen, err := bs.PopUint32()
 	if err != nil {
-		return nil
+		return err
 	}
 	startPop := bs.GetReadLength()
 
 	a.Version, err = bs.PopUint32() //<uint32> 版本号
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Bid, err = bs.PopUint64()
 	if err != nil {
-		return nil
+		return errors.New("Bid error " + err.Error())
 	}
 	a.Bid_u, err = bs.PopUint8() // uint8 bid的flag位
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Uid, err = bs.PopUint64() //<uint64> uid, 用户id(版本>=0)
 	if err != nil {
-		return nil
+		return errors.New("Uid error " + err.Error())
 	}
 	a.Uid_u, err = bs.PopUint8() // uint8 uid的flag位
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Nickname, err = bs.PopString() //<std::string> 昵称(版本>=0)
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Nickname_u, err = bs.PopUint8() // uint8 nickname的flag位
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Truename, err = bs.PopString() //<std::string> 真实姓名(版本>=0)
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Truename_u, err = bs.PopUint8() // uint8 truename的flag位
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Sex, err = bs.PopUint8() //<uint8> 性别：0-未知，1-女，2-男。参见E_USER_SEX(版本>=0)
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Sex_u, err = bs.PopUint8() // uint8 sex的flag位
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Birthday, err = bs.PopUint64() //<int64> 生日/预产期(版本>=0)
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Birthday_u, err = bs.PopUint8() // uint8 birthday的flag位
 	if err != nil {
-		return nil
+		return err
 	}
-	a.BitProperty, err = bs.PopUint64() //<std::bitset<64> > 宝宝属性位BitSet，具体意义参见user_comm_define.h中的E_USER_PROPERTY(版本>=0)
+	a.BitProperty, err = bs.PopBitSet() //<std::bitset<64> > 宝宝属性位BitSet，具体意义参见user_comm_define.h中的E_USER_PROPERTY(版本>=0)
 	if err != nil {
-		return nil
+		return errors.New("BitProperty error " + err.Error())
 	}
 	a.BitProperty_u, err = bs.PopUint8() // uint8 bitProperty的flag位
 	if err != nil {
-		return nil
+		return err
 	}
 	a.AddTime, err = bs.PopUint32() //<uint32> 添加时间
 	if err != nil {
-		return nil
+		return err
 	}
 	a.AddTime_u, err = bs.PopUint8()
 	if err != nil {
-		return nil
+		return err
 	}
 	a.LastUpdateTime, err = bs.PopUint32() //<uint32> 最后修改时间
 	if err != nil {
-		return nil
+		return err
 	}
 	a.LastUpdateTime_u, err = bs.PopUint8()
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Reserve, err = bs.PopString() //<std::string> 预留字段
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Reserve_u, err = bs.PopUint8()
 	if err != nil {
-		return nil
+		return err
 	}
 	a.Compat(bs, classLen, startPop)
 	return nil

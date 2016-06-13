@@ -8,8 +8,12 @@ import (
 
 func Test_ExGetUserInfos(t *testing.T) {
 	var uids []int64
-	uids = append(uids, 1000193003)
-	host := "172.172.177.5:53101"
+
+	//uids = append(uids,1000001809)
+	//uids = append(uids,1000001513)
+	uids = append(uids,1000002024)
+	//uids = append(uids,1000000631)
+	host := "172.172.178.24:53101"
 	source := "gotest"
 	machineKey := "gotest"
 	info, err := ExUserGetUserInfos(uids, host, machineKey, source)
@@ -53,5 +57,22 @@ func Test_ExUserGetByPhone(t *testing.T) {
 		t.Errorf("error:%s", err.Error())
 	} else {
 		t.Errorf("info:%v", user)
+	}
+}
+
+
+func Test_ExUserCheckLogin(t *testing.T){
+	host := "172.172.178.24:53101"
+	source := "gotest"
+	machineKey := "gotest"
+	var uid int64
+	uid = 1000001513
+	skey := "H5FA671816"
+	result,err:= ExUserCheckLogin(uid, skey, host, machineKey, source)
+
+	if err!=nil{
+			t.Errorf("error:%s", err.Error())
+	}else if !result{
+			t.Error("login false")
 	}
 }
