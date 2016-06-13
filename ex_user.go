@@ -68,22 +68,22 @@ func ExUserGetUserInfos(uids []int64, host string, machineKey string, source str
 
 	info, err := goClient.Call(req, aoReq, aoRes)
 
-	info_struct := info.(*AoBatchGetUserInfoByUidRsp)
+	if err == nil {
+		info_struct := info.(*AoBatchGetUserInfoByUidRsp)
 
-	info_map_struct := info_struct.Users
+		info_map_struct := info_struct.Users
 
-	returnData := make(map[int64]ModelUser)
-	if err != nil {
+		returnData := make(map[int64]ModelUser)
 
-	} else if aoRes.Result != 0 {
-		err = errors.New(fmt.Sprintf("result code is %d", aoRes.Result))
-	} else {
 		for uidOne, infoOne := range info_map_struct {
 			returnData[int64(uidOne)] = exGetUserInfoFromAoData(infoOne)
 		}
+		return returnData, err
 	}
-	return returnData, err
-
+	if aoRes.Result != 0 {
+		err = errors.New(fmt.Sprintf("result code is %d", aoRes.Result))
+	}
+	return nil,err
 }
 
 func exUserGetNickName(uid uint64, nickName string) string {

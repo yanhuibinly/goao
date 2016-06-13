@@ -30,7 +30,7 @@ func Test_ExUserModify(t *testing.T) {
 	nickName := "newNickName"
 	photo := "http://img4.18183.duoku.com/uploads/allimg/160420/32-160420160319-50.jpg"
 	var userType uint8
-	userType = 2
+	userType = 3
 
 	code, err := ExUserModifyBasicByUid(uid, signature, true, photo, true, nickName, true, userType, true, host, machineKey, source)
 
