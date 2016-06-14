@@ -1,5 +1,10 @@
 package goao
 
+import(
+	"errors"
+	"fmt"
+)
+
 type AoRsp struct {
 	ErrMsg     string
 	Result     uint32
@@ -113,6 +118,7 @@ func NewAoBatchGetUserInfoByUidRsp() *AoBatchGetUserInfoByUidRsp {
 func (u *AoBatchGetUserInfoByUidRsp) UnSerialize(bs *ByteStream) (bool, error) {
 
 	var errResult error
+
 	u.Result, errResult = bs.PopUint32()
 	if errResult != nil {
 		return false, errResult
@@ -121,13 +127,13 @@ func (u *AoBatchGetUserInfoByUidRsp) UnSerialize(bs *ByteStream) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
+	
 	for i := uint32(0); i < length; i++ {
 
 		uid, err := bs.PopUint64()
 
 		if err != nil {
-			return false, err
+			return false, errors.New(fmt.Sprintf("uid error: %s,length:%d,index:%d",err.Error(),length,i))
 		}
 
 		userInfo := NewAoUserInfoXXOO()
@@ -154,6 +160,7 @@ func (u *AoBatchGetUserInfoByUidRsp) UnSerialize(bs *ByteStream) (bool, error) {
 	}
 
 	return bs.IsGood(), nil
+	//return false,newError
 }
 
 /*BatchGetUserInfoByUid end*/

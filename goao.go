@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/fatih/pool"
-	"github.com/tonyjt/tgo"
 )
 
 type GoAo struct {
@@ -91,11 +90,11 @@ func (g *GoAo) redailConn(c net.Conn, host string) (net.Conn, error) {
 
 	//var one []byte
 
-	//tgo.UtilLogError("ao connection reset try")
+	//log.Error("ao connection reset try")
 
 	//if _, err := c.Read(one); err != nil {
 	//链接断开了
-	tgo.UtilLogError("ao connection from pool redail")
+	log.Error("ao connection from pool redail")
 
 	cp := c.(*pool.PoolConn)
 
@@ -105,7 +104,7 @@ func (g *GoAo) redailConn(c net.Conn, host string) (net.Conn, error) {
 	cp.Conn, err = g.dail(host)
 
 	if err != nil {
-		tgo.UtilLogErrorf("ao connection pool redail failed:%s", err.Error())
+		log.Error("ao connection pool redail failed:%s", err.Error())
 		return cp, errors.New(fmt.Sprintf("redail failed,%s", err.Error()))
 	}
 	return cp, nil
@@ -145,7 +144,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	if errWrite != nil {
 
-		tgo.UtilLogErrorf("write data to ao failed:%s", errWrite)
+		log.Error("write data to ao failed:%s", errWrite)
 
 		var errRedail error
 		conn, errRedail = g.redailConn(conn, req.Host)
@@ -167,7 +166,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	if errRead != nil {
 
-		tgo.UtilLogErrorf("read byte stx failed:%s", errRead)
+		log.Error("read byte stx failed:%s", errRead)
 
 		if errRead.Error() == "connection reset by peer" {
 			var errRedail error
@@ -200,7 +199,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	_, errRead = conn.Read(byteLength)
 
 	if errRead != nil {
-		tgo.UtilLogErrorf("read byte length failed:%s", errRead)
+		log.Error("read byte length failed:%s", errRead)
 
 		return nil, errRead
 	}
@@ -208,12 +207,11 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	dwLength := binary.BigEndian.Uint32(byteLength)
 
 	var byteRes = make([]byte, dwLength)
-
 	_, errRead = conn.Read(byteRes)
 
 	if errRead != nil {
 
-		tgo.UtilLogErrorf("read response failed:%s", errRead)
+		log.Error("read response failed:%s", errRead)
 
 		return nil, errRead
 	}
