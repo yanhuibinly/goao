@@ -6,6 +6,12 @@ import(
 
 var log ILog
 
+
+func SetLog(l ILog){
+  log = l
+}
+
+
 type ILog interface{
   Error(format string, a ...interface{})
   Info(format string, a ...interface{})
