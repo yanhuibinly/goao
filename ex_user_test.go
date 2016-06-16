@@ -6,41 +6,40 @@ import (
 	"testing"
 )
 
-type LogTest struct{
+type LogTest struct {
 	T *testing.T
 }
 
-
-func (l *LogTest)Error(format string, a ...interface{}){
-		l.T.Logf(format, a...)
+func (l *LogTest) Error(format string, a ...interface{}) {
+	l.T.Logf(format, a...)
 }
-func (l *LogTest)Info(format string, a ...interface{}){
-		l.T.Logf(format, a...)
+func (l *LogTest) Info(format string, a ...interface{}) {
+	l.T.Logf(format, a...)
 }
 
-func testInit(t *testing.T){
-	log = &LogTest{T:t}
+func testInit(t *testing.T) {
+	log = &LogTest{T: t}
 }
 func Test_ExGetUserInfos(t *testing.T) {
 	testInit(t)
 
-	for i:=0;i<50;i++{
+	for i := 0; i < 50; i++ {
 		var uids []int64
 
-		uids = append(uids,1000001809)
-		uids = append(uids,1000001513)
-		uids = append(uids,1000001690)
+		uids = append(uids, 1000001809)
+		uids = append(uids, 1000001513)
+		uids = append(uids, 1000001690)
 		//uids = append(uids,1000020601)
 		//uids = append(uids,1000002024)
 
-	//1000005355 1000001690 1000020601
-	//uids = append(uids,1000000631)
+		//1000005355 1000001690 1000020601
+		//uids = append(uids,1000000631)
 		host := "172.172.178.24:53101"
 		source := "gotest"
 		machineKey := "gotest"
 		_, err := ExUserGetUserInfos(uids, host, machineKey, source)
 		if err != nil {
-			t.Errorf("error:%s,index:%d", err.Error(),i)
+			t.Errorf("error:%s,index:%d", err.Error(), i)
 			return
 		}
 	}
@@ -84,22 +83,20 @@ func Test_ExUserGetByPhone(t *testing.T) {
 	}
 }
 
-
-func Test_ExUserCheckLogin(t *testing.T){
+func Test_ExUserCheckLogin(t *testing.T) {
 	testInit(t)
 	host := "172.172.178.24:53101"
-	source := "gotest"
-	machineKey := "gotest"
+	source := "cmt"
+	machineKey := "cmt"
 	var uid int64
 	uid = 1000001513
-	skey := "H5D5E9D246"
-	for i:=0;i<1;i++{
-	result,err:= ExUserCheckLogin(uid, skey, host, machineKey, source)
+	skey := "H5BC45490E"
 
-	if err!=nil{
-			t.Errorf("error:%s,index:%d", err.Error(),i)
-	}else if !result{
-			t.Error("login false")
-		}
+	result, err := ExUserCheckLogin(uid, skey, host, machineKey, source)
+
+	if err != nil {
+		t.Errorf("error:%s", err.Error())
+	} else if !result {
+		t.Error("login false")
 	}
 }

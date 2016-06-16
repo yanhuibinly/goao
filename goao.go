@@ -58,7 +58,7 @@ func (g *GoAo) GetConn(host string) (net.Conn, error) {
 			var errPool error
 
 			var newPool pool.Pool
-			newPool, errPool = pool.NewChannelPool(1, 500, func() (net.Conn, error) {
+			newPool, errPool = pool.NewChannelPool(1, 10, func() (net.Conn, error) {
 				return g.dail(host)
 			})
 
@@ -134,7 +134,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	defer conn.Close()
 
-	conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
 	defer conn.SetReadDeadline(time.Now().Add(72000 * time.Hour))
 
@@ -166,26 +166,27 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	if errRead != nil {
 
-		log.Error("read byte stx failed:%s", errRead)
+		log.Error("read byte stx failed :%s", errRead.Error())
+		/*
+			if errRead == nil || errRead.Error() == "connection reset by peer" {
+				var errRedail error
+				conn, errRedail = g.redailConn(conn, req.Host)
 
-		if errRead.Error() == "connection reset by peer" {
-			var errRedail error
-			conn, errRedail = g.redailConn(conn, req.Host)
+				if errRedail == nil {
+					_, errRead = conn.Read(byteStx)
 
-			if errRedail == nil {
-				_, errRead = conn.Read(byteStx)
-
-				if errRead != nil {
-					return nil, errRead
+					if errRead != nil {
+						return nil, errRead
+					}
+				} else {
+					return nil, errRedail
 				}
 			} else {
-				return nil, errRedail
+
+				conn, _ = g.redailConn(conn, req.Host)
+
 			}
-		} else {
-
-			conn, _ = g.redailConn(conn, req.Host)
-
-		}
+		*/
 
 		return nil, errRead
 	}
