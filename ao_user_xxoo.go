@@ -1,7 +1,6 @@
 package goao
 
 import (
-	"reflect"
 	"errors"
 )
 
@@ -17,7 +16,7 @@ type AoUserInfoXXOO struct {
 	Email_u                 uint8
 	LoginAccount            string //<std::string> 个性化账号
 	LoginAccount_u          uint8
-	WechatOpenid            map[interface{}]interface{} //<std::map<std::string,std::string> > 微信OpenID：appid-openid
+	WechatOpenid            map[string]string //<std::map<std::string,std::string> > 微信OpenID：appid-openid
 	WechatOpenid_u          uint8
 	WechatUnionid           string //<std::string> 微信unionID
 	WechatUnionid_u         uint8
@@ -35,7 +34,7 @@ type AoUserInfoXXOO struct {
 	Skey_u                  uint8
 	SkeyInvalidTime         uint32 //<uint32> 用户sessionkey失效时间
 	SkeyInvalidTime_u       uint8
-	DiffSrcRegTime          map[interface{}]interface{} //<std::map<uint32,uint32> > 不同来源用户注册时间, key为来源，value为注册时间
+	DiffSrcRegTime          map[uint32]uint32 //<std::map<uint32,uint32> > 不同来源用户注册时间, key为来源，value为注册时间
 	DiffSrcRegTime_u        uint8
 	Rating                  uint8 //<uint8> 用户评级
 	Rating_u                uint8
@@ -73,7 +72,7 @@ type AoUserInfoXXOO struct {
 	Photo_u                 uint8
 	Signature               string //<std::string> 签名
 	Signature_u             uint8
-	Euid                    map[interface{}]interface{} //<std::map<uint32,std::string> > 外部导入用户euid, key为来源渠道（参见b2b2c_define.h中的E_USER_EUID_SOURCE）, value为外部uid
+	Euid                    map[uint32]string //<std::map<uint32,std::string> > 外部导入用户euid, key为来源渠道（参见b2b2c_define.h中的E_USER_EUID_SOURCE）, value为外部uid
 	Euid_u                  uint8
 	Referrer                string //<std::string> 推荐人，招募人
 	Referrer_u              uint8
@@ -101,7 +100,7 @@ type AoUserInfoXXOO struct {
 	IfSendErp_u             uint8
 	SendErpTime             uint32
 	SendErpTime_u           uint8
-	DiffChannelActiveTime   map[interface{}]interface{} //<std::map<uint32,uint32> >
+	DiffChannelActiveTime   map[uint32]uint32 //<std::map<uint32,uint32> >
 	DiffChannelActiveTime_u uint8
 	PromoteActive           string
 	PromoteActive_u         uint8
@@ -147,7 +146,7 @@ func (a *AoUserInfoXXOO) serialize_internal(bs *ByteStream) bool {
 	bs.PushUint8(a.Email_u)
 	bs.PushString(a.LoginAccount) //<std::string> 个性化账号
 	bs.PushUint8(a.LoginAccount_u)
-	bs.PushMap(a.WechatOpenid) //<std::map<std::string,std::string> > 微信OpenID：appid-openid
+	bs.PushMapStringString(a.WechatOpenid) //<std::map<std::string,std::string> > 微信OpenID：appid-openid
 	bs.PushUint8(a.WechatOpenid_u)
 	bs.PushString(a.WechatUnionid) //<std::string> 微信unionID
 	bs.PushUint8(a.WechatUnionid_u)
@@ -165,7 +164,7 @@ func (a *AoUserInfoXXOO) serialize_internal(bs *ByteStream) bool {
 	bs.PushUint8(a.Skey_u)
 	bs.PushUint32(a.SkeyInvalidTime) //<uint32> 用户sessionkey失效时间
 	bs.PushUint8(a.SkeyInvalidTime_u)
-	bs.PushMap(a.DiffSrcRegTime) //<std::map<uint32,uint32> > 不同来源用户注册时间, key为来源，value为注册时间
+	bs.PushMapUInt32UInt32(a.DiffSrcRegTime) //<std::map<uint32,uint32> > 不同来源用户注册时间, key为来源，value为注册时间
 	bs.PushUint8(a.DiffSrcRegTime_u)
 	bs.PushUint8(a.Rating) //<uint8> 用户评级
 	bs.PushUint8(a.Rating_u)
@@ -208,7 +207,7 @@ func (a *AoUserInfoXXOO) serialize_internal(bs *ByteStream) bool {
 	bs.PushUint8(a.Photo_u)
 	bs.PushString(a.Signature) //<std::string> 签名
 	bs.PushUint8(a.Signature_u)
-	bs.PushMap(a.Euid) //<std::map<uint32,std::string> > 外部导入用户euid, key为来源渠道（参见b2b2c_define.h中的E_USER_EUID_SOURCE）, value为外部uid
+	bs.PushMapUInt32String(a.Euid) //<std::map<uint32,std::string> > 外部导入用户euid, key为来源渠道（参见b2b2c_define.h中的E_USER_EUID_SOURCE）, value为外部uid
 	bs.PushUint8(a.Euid_u)
 	bs.PushUint32(a.AddTime) //<uint32> 添加时间
 	bs.PushUint8(a.AddTime_u)
@@ -231,7 +230,7 @@ func (a *AoUserInfoXXOO) serialize_internal(bs *ByteStream) bool {
 		for _, m := range a.MembercardList {
 			membercardList = append(membercardList, IAoXXOO(&m))
 		}
-		bs.PushObject(membercardList) //<std::vector<b2b2c::user::po::CMembercardInfoPo> > 会员卡列表(会员卡类型:外卡号,内卡号…)(卡类型：1-实体卡，2-联名卡，3-虚拟卡)(最多绑定10张)
+		bs.PushSet(membercardList) //<std::vector<b2b2c::user::po::CMembercardInfoPo> > 会员卡列表(会员卡类型:外卡号,内卡号…)(卡类型：1-实体卡，2-联名卡，3-虚拟卡)(最多绑定10张)
 		bs.PushUint8(a.MembercardList_u)
 	}
 	if a.Version >= 20151110 {
@@ -271,7 +270,7 @@ func (a *AoUserInfoXXOO) serialize_internal(bs *ByteStream) bool {
 		bs.PushUint8(a.SendErpTime_u)
 	}
 	if a.Version >= 20151231 {
-		bs.PushMap(a.DiffChannelActiveTime) //<std::map<uint32,uint32> > 用户不同渠道激活时间, key为渠道，value为激活时间
+		bs.PushMapUInt32UInt32(a.DiffChannelActiveTime) //<std::map<uint32,uint32> > 用户不同渠道激活时间, key为渠道，value为激活时间
 		bs.PushUint8(a.DiffChannelActiveTime_u)
 	}
 	if a.Version >= 20160119 {
@@ -363,7 +362,7 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 	if err != nil {
 		return err
 	}
-	a.WechatOpenid, err = bs.PopMap(reflect.TypeOf(""), reflect.TypeOf("")) //<std::map<std::string,std::string> > 微信OpenID：appid-openid
+	a.WechatOpenid, err = bs.PopMapStringString() //<std::map<std::string,std::string> > 微信OpenID：appid-openid
 
 	if err != nil {
 		return err
@@ -437,7 +436,7 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 		return err
 	}
 
-	a.DiffSrcRegTime, err = bs.PopMap(reflect.TypeOf(uint32(0)), reflect.TypeOf(uint32(0))) //<std::map<uint32,uint32> > 不同来源用户注册时间, key为来源，value为注册时间
+	a.DiffSrcRegTime, err = bs.PopMapUInt32UInt32() //<std::map<uint32,uint32> > 不同来源用户注册时间, key为来源，value为注册时间
 	if err != nil {
 		return err
 	}
@@ -601,7 +600,7 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 	if err != nil {
 		return err
 	}
-	a.Euid, err = bs.PopMap(reflect.TypeOf(uint32(0)), reflect.TypeOf("")) //<std::map<uint32,std::string> > 外部导入用户euid, key为来源渠道（参见b2b2c_define.h中的E_USER_EUID_SOURCE）, value为外部uid
+	a.Euid, err = bs.PopMapUInt32String() //<std::map<uint32,std::string> > 外部导入用户euid, key为来源渠道（参见b2b2c_define.h中的E_USER_EUID_SOURCE）, value为外部uid
 	if err != nil {
 		return err
 	}
@@ -638,10 +637,223 @@ func (a *AoUserInfoXXOO) UnSerialize(bs *ByteStream) error {
 		return err
 	}
 	a.Reserve_u, err = bs.PopUint8()
-
 	if err != nil {
 		return err
 	}
+
+	if a.Version >= 20151110 {
+		a.WechatAccount, err = bs.PopString() //<std::string> 微信账号
+		if err != nil {
+			return err
+		}
+		a.WechatAccount_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.MemberLevel, err = bs.PopUint8() //<uint8_t> 会员等级(1-银卡，2-金卡，3-铂金卡)
+		if err != nil {
+			return err
+		}
+		a.MemberLevel_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		//<std::vector<b2b2c::user::po::CMembercardInfoPo> > 会员卡列表(会员卡类型:外卡号,内卡号;…)(卡类型：1-实体卡，2-联名卡，3-虚拟卡)(最多绑定10张)
+		var sizeMembercardList uint32
+		sizeMembercardList, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		for i := uint32(0); i < sizeMembercardList; i++ {
+			info := NewAoMemberCardInfoXXOO()
+			err = info.UnSerialize(bs)
+			if err != nil {
+				return err
+			}
+			a.MembercardList = append(a.MembercardList, *info)
+		}
+		a.MembercardList_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.PregnantPassportList, err = bs.PopStringSet() //<std::vector<std::string> > 好孕护照列表
+		if err != nil {
+			return err
+		}
+		a.PregnantPassportList_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.Recruiter, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		a.Recruiter_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.Manager, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		a.Manager_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.Creator, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		a.Creator_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.CreatorDepartment, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		a.CreatorDepartment_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.RegisterSource, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		a.RegisterSource_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.MemberSource, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		a.MemberSource_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.IfSendErp, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		a.IfSendErp_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.SendErpTime, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		a.SendErpTime_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if a.Version >= 20151231 {
+		a.DiffChannelActiveTime, err = bs.PopMapUInt32UInt32()
+		if err != nil {
+			return err
+		}
+		a.DiffChannelActiveTime_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+	if a.Version >= 20160119 {
+		a.PromoteActive, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		a.PromoteActive_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+	if a.Version >= 20160120 {
+		buyer := NewAoBuyerPropertyXXOOXXOO()
+		err = buyer.UnSerialize(bs)
+		if err != nil {
+			return err
+		}
+		a.BuyerProperty = *buyer
+		a.BuyerProperty_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+	if a.Version >= 20160317 {
+		a.UserLableList, err = bs.PopStringSet()
+		if err != nil {
+			return err
+		}
+		a.UserLableList_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.UserLableRemarks, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		a.UserLableRemarks_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if a.Version >= 20160413 {
+		a.MobileStatus, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		a.MobileStatus_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+		a.MemberBitProperty, err = bs.PopBitSet()
+		if err != nil {
+			return err
+		}
+		a.MemberBitProperty_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if a.Version >= 20160516 {
+		a.PregnantPlan, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		a.PregnantPlan_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if a.Version >= 20160517 {
+		a.UserPictureLableList, err = bs.PopStringSet()
+		if err != nil {
+			return err
+		}
+		a.UserPictureLableList_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
 	a.Compat(bs, classLen, startPop)
 	return nil
 }
@@ -667,11 +879,13 @@ type AoBabyInfoXXOO struct {
 	Birthday_u    uint8  // uint8 birthday的flag位
 	BitProperty   []uint8 //<std::bitset<64> > 宝宝属性位BitSet，具体意义参见user_comm_define.h中的E_USER_PROPERTY(版本>=0)
 	BitProperty_u uint8  // uint8 bitProperty的flag位
+	AgeDiscribe string	//<std::string> 宝宝年龄描述(版本>=20160615)
+	AgeDiscribe_u uint8 // uint8_t ageDiscribe的flag位
 }
 
 func NewAoBabyInfoXXOO() *AoBabyInfoXXOO {
 	obj := &AoBabyInfoXXOO{}
-
+	obj.Version = 20160615
 	return obj
 }
 
@@ -704,6 +918,11 @@ func (ao *AoBabyInfoXXOO) serialize_internal(bs *ByteStream) bool {
 	bs.PushUint8(ao.LastUpdateTime_u)
 	bs.PushString(ao.Reserve)
 	bs.PushUint8(ao.Reserve_u)
+
+	if ao.Version >= 20160615 {
+		bs.PushString(ao.AgeDiscribe)
+		bs.PushUint8(ao.AgeDiscribe_u)
+	}
 
 	return bs.IsGood()
 }
@@ -808,6 +1027,16 @@ func (a *AoBabyInfoXXOO) UnSerialize(bs *ByteStream) error {
 	a.Reserve_u, err = bs.PopUint8()
 	if err != nil {
 		return err
+	}
+	if a.Version >= 20160615 {
+		a.AgeDiscribe, err = bs.PopString() //<std::string> 宝宝年龄描述
+		if err != nil {
+			return err
+		}
+		a.AgeDiscribe_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
 	}
 	a.Compat(bs, classLen, startPop)
 	return nil
@@ -1167,7 +1396,7 @@ type AoMemberCardInfoXXOO struct {
 	CardStatus_u       uint8
 }
 
-func NewAoBuyerPropertyPoXXOO() *AoMemberCardInfoXXOO {
+func NewAoMemberCardInfoXXOO() *AoMemberCardInfoXXOO {
 	obj := &AoMemberCardInfoXXOO{}
 	obj.Version = uint32(20160120)
 	return obj
