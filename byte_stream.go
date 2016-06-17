@@ -486,6 +486,108 @@ func (b *ByteStream) PopMap(keyType reflect.Type, valueType reflect.Type) (map[i
 	return obj, nil
 }
 
+func (b *ByteStream) PushMapUInt32String(obj map[uint32]string) {
+
+	b.PushUint32(uint32(len(obj)))
+
+	for k, v := range obj {
+		b.PushUint32(k)
+		b.PushString(v)
+	}
+}
+
+func (b *ByteStream) PopMapUInt32String() (map[uint32]string, error) {
+
+	size, err := b.PopUint32()
+
+	if err != nil {
+		return nil, err
+	}
+	obj := make(map[uint32]string)
+	for i := uint32(0); i < size; i++ {
+
+		key, errKey := b.PopUint32()
+
+		value, errValue := b.PopString()
+
+		if errKey != nil {
+			return nil, errKey
+		} else if errValue != nil {
+			return nil, errValue
+		}
+		obj[key] = value
+	}
+	return obj, nil
+}
+
+func (b *ByteStream) PushMapUInt32UInt32(obj map[uint32]uint32) {
+
+	b.PushUint32(uint32(len(obj)))
+
+	for k, v := range obj {
+		b.PushUint32(k)
+		b.PushUint32(v)
+	}
+}
+
+func (b *ByteStream) PopMapUInt32UInt32() (map[uint32]uint32, error) {
+
+	size, err := b.PopUint32()
+
+	if err != nil {
+		return nil, err
+	}
+	obj := make(map[uint32]uint32)
+	for i := uint32(0); i < size; i++ {
+
+		key, errKey := b.PopUint32()
+
+		value, errValue := b.PopUint32()
+
+		if errKey != nil {
+			return nil, errKey
+		} else if errValue != nil {
+			return nil, errValue
+		}
+		obj[key] = value
+	}
+	return obj, nil
+}
+
+func (b *ByteStream) PushMapStringString(obj map[string]string) {
+
+	b.PushUint32(uint32(len(obj)))
+
+	for k, v := range obj {
+		b.PushString(k)
+		b.PushString(v)
+	}
+}
+
+func (b *ByteStream) PopMapStringString() (map[string]string, error) {
+
+	size, err := b.PopUint32()
+
+	if err != nil {
+		return nil, err
+	}
+	obj := make(map[string]string)
+	for i := uint32(0); i < size; i++ {
+
+		key, errKey := b.PopString()
+
+		value, errValue := b.PopString()
+
+		if errKey != nil {
+			return nil, errKey
+		} else if errValue != nil {
+			return nil, errValue
+		}
+		obj[key] = value
+	}
+	return obj, nil
+}
+
 func (b *ByteStream) PushSet(obj []IAoXXOO) {
 	b.PushUint32(uint32(len(obj)))
 	for _, v := range obj {

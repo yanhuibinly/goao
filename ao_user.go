@@ -43,7 +43,7 @@ type AoGetUserInfoByUidRsp struct {
 
 func NewAoGetUserInfoByUidRsp() *AoGetUserInfoByUidRsp {
 	model := &AoGetUserInfoByUidRsp{}
-
+	model.User.Version = 20160517
 	return model
 }
 

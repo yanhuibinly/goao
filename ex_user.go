@@ -12,12 +12,12 @@ type ModelUser struct {
 	Mobile           string      `json:"mobile"`
 	Email            string      `json:"Email"`
 	LoginAccount     string      `json:"loginAccount"`
-	WechatOpenid     string      `json:"wechatOpenid"`
+	WechatOpenid     map[string]string      `json:"wechatOpenid"`
 	WechatUnionid    string      `json:"wechatUnionid"`
 	UserType         uint8       `json:"userType"`
 	DiffSrcRegTime   string      `json:"diffSrcRegTime"`
 	Rating           uint8       `json:"rating"`
-	BabyInfo         interface{} `json:"babyInfo"`
+	BabyInfo         []AoBabyInfoXXOO `json:"babyInfo"`
 	RelationWithBaby uint8       `json:"relationWithBaby"`
 	Nickname         string      `json:"nickname"`
 	Truename         string      `json:"truename"`
