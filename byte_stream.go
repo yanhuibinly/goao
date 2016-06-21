@@ -382,7 +382,7 @@ func (b *ByteStream) PushString(data string) {
 func (b *ByteStream) PopString() (string, error) {
 	if !b.bGood || (b.iOffset+4 > b.iBufLength) {
 		b.bGood = false
-		return "", errors.New(fmt.Sprintf("pop int ERROR: !m_bGood || (%d + 4) > %d", b.iBufLength))
+		return "", errors.New(fmt.Sprintf("pop int ERROR: !m_bGood || (%d + 4) > %d", b.iOffset,b.iBufLength))
 	}
 
 	intLen, err := b.PopUint32()

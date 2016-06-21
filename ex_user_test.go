@@ -23,13 +23,13 @@ func testInit(t *testing.T) {
 func Test_ExGetUserInfos(t *testing.T) {
 	testInit(t)
 
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 500; i++ {
 		var uids []int64
 
 		uids = append(uids, 1000001809)
 		uids = append(uids, 1000001513)
 		uids = append(uids, 1000001690)
-		//uids = append(uids,1000020601)
+		uids = append(uids,1000020601)
 		//uids = append(uids,1000002024)
 
 		//1000005355 1000001690 1000020601
@@ -68,6 +68,7 @@ func Test_ExUserModify(t *testing.T) {
 }
 
 func Test_ExUserGetByPhone(t *testing.T) {
+
 	testInit(t)
 	host := "172.172.177.5:53101"
 	source := "gotest"

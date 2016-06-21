@@ -192,6 +192,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	}
 
 	if binary.BigEndian.Uint16(byteStx) != 21930 {
+
 		return nil, errors.New(fmt.Sprintf("stx is error :%d", byteStx))
 	}
 
@@ -207,8 +208,26 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	dwLength := binary.BigEndian.Uint32(byteLength)
 
-	var byteRes = make([]byte, dwLength)
-	_, errRead = conn.Read(byteRes)
+	var byteRes = make([]byte, 0,dwLength)
+
+	leftLength := int(dwLength)
+
+	var n int
+
+	for {
+       if leftLength <=0{
+            break
+       }
+
+       tmp := make([]byte, leftLength)
+       n, errRead = conn.Read(tmp)
+
+       if errRead != nil {
+        	break
+       }
+       leftLength = leftLength - n
+       byteRes = append(byteRes, tmp[:n]...)
+  }
 
 	if errRead != nil {
 
