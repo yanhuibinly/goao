@@ -354,3 +354,66 @@ func (u *AoGetUserInfoByBindInfoRsp) UnSerialize(bs *ByteStream) (bool, error) {
 }
 
 /*GetUserInfoByBindInfo end*/
+
+/*GetUidByEuid start*/
+type AoGetUidByEuidReq struct {
+	EuidSource uint32
+	Euid     string
+}
+
+func NewAoGetUidByEuidReq() *AoGetUidByEuidReq {
+	model := &AoGetUidByEuidReq{}
+	return model
+}
+
+func (u *AoGetUidByEuidReq) GetCmdId() uint32 {
+	return 0x4006182C
+}
+
+func (u *AoGetUidByEuidReq) Serialize(bs *ByteStream, req *Request) bool {
+	bs.PushString(req.MachineKey) //<std::string> 机器码，请取cookie里面的visitkey，无法获得visitkey的可以填随机字符串，必填
+	bs.PushString(req.Source)     //<std::string> 调用来源, 请填调用方自己的源文件名称，必填
+	bs.PushUint32(req.SceneId)    //<uint32_t> 场景id：1，只获取用户信息；2，获取用户信息和宝宝信息。必填
+	bs.PushUint32(u.EuidSource) //<uint32_t> euidSource，必填
+	bs.PushString(u.Euid)     //<std::string> euid，必填
+	bs.PushString(req.InReserve)  //<std::string> 输入保留字
+
+	return bs.IsGood()
+}
+
+type AoGetUidByEuidRsp struct {
+	AoRsp
+	Uid uint64
+}
+
+func NewAoGetUidByEuidRsp() *AoGetUidByEuidRsp {
+	model := &AoGetUidByEuidRsp{}
+	return model
+}
+
+func (u *AoGetUidByEuidRsp) UnSerialize(bs *ByteStream) (bool, error) {
+	var errResult error
+	u.Result, errResult = bs.PopUint32()
+	if errResult != nil {
+		return false, errResult
+	}
+	var errUid error
+	u.Uid, errUid = bs.PopUint64()
+	if errUid != nil {
+		return false, errUid
+	}
+	var errMsg error
+	u.ErrMsg, errMsg = bs.PopString()
+	if errMsg != nil {
+		return false, errMsg
+	}
+	var errOutResever error
+	u.OutReserve, errOutResever = bs.PopString()
+	if errOutResever != nil {
+		return false, errOutResever
+	}
+
+	return bs.IsGood(), nil
+}
+
+/*GetUidByEuid end*/
