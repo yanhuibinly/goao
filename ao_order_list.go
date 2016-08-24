@@ -76,7 +76,7 @@ func (u *AoOrderListSysQueryRsp) UnSerialize(bs *ByteStream) (bool, error) {
 		info := NewAoOrderListDealPoXXOO()
 		errOrderListInfo := info.UnSerialize(bs)
 		if errOrderListInfo != nil {
-			return false, errOrderListInfo
+			//return false, errOrderListInfo
 		}
 		u.OrderListInfo = append(u.OrderListInfo, *info)
 	}
