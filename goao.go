@@ -201,7 +201,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 	_, errRead = conn.Read(byteLength)
 
 	if errRead != nil {
-		log.Error("read byte length failed:%s", errRead)
+		log.Error("read byte length failed:%s", errRead.Error())
 
 		return nil, errRead
 	}
@@ -231,7 +231,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	if errRead != nil {
 
-		log.Error("read response failed:%s", errRead)
+		log.Error("read response failed:%s", errRead.Error())
 
 		return nil, errRead
 	}
