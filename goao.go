@@ -144,7 +144,7 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	if errWrite != nil {
 
-		log.Error("write data to ao failed:%s", errWrite)
+		log.Error("write data to ao failed:%s", errWrite.Error())
 
 		var errRedail error
 		conn, errRedail = g.redailConn(conn, req.Host)
@@ -208,26 +208,26 @@ func (g *GoAo) Call(req *Request, iao IAoReq, iaoRsp IAoRsp) (interface{}, error
 
 	dwLength := binary.BigEndian.Uint32(byteLength)
 
-	var byteRes = make([]byte, 0,dwLength)
+	var byteRes = make([]byte, 0, dwLength)
 
 	leftLength := int(dwLength)
 
 	var n int
 
 	for {
-       if leftLength <=0{
-            break
-       }
+		if leftLength <= 0 {
+			break
+		}
 
-       tmp := make([]byte, leftLength)
-       n, errRead = conn.Read(tmp)
+		tmp := make([]byte, leftLength)
+		n, errRead = conn.Read(tmp)
 
-       if errRead != nil {
-        	break
-       }
-       leftLength = leftLength - n
-       byteRes = append(byteRes, tmp[:n]...)
-  }
+		if errRead != nil {
+			break
+		}
+		leftLength = leftLength - n
+		byteRes = append(byteRes, tmp[:n]...)
+	}
 
 	if errRead != nil {
 
