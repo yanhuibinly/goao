@@ -7,36 +7,36 @@ import (
 )
 
 type ModelUser struct {
-	Uid              int64       `json:"uid"`
-	AccountType      uint8       `json:"accountType"`
-	Mobile           string      `json:"mobile"`
-	Email            string      `json:"Email"`
-	LoginAccount     string      `json:"loginAccount"`
-	WechatOpenid     map[string]string      `json:"wechatOpenid"`
-	WechatUnionid    string      `json:"wechatUnionid"`
-	UserType         uint8       `json:"userType"`
-	DiffSrcRegTime   string      `json:"diffSrcRegTime"`
-	Rating           uint8       `json:"rating"`
-	BabyInfo         []AoBabyInfoXXOO `json:"babyInfo"`
-	RelationWithBaby uint8       `json:"relationWithBaby"`
-	Nickname         string      `json:"nickname"`
-	Truename         string      `json:"truename"`
-	Sex              uint8       `json:"sex"`
-	Birthday         int64       `json:"birthday"`
-	QQNumber         uint64      `json:"qQNumber"`
-	Phone            string      `json:"phone"`
-	Fax              string      `json:"fax"`
-	Region           string      `json:"region"`
-	Address          string      `json:"address"`
-	Community        string      `json:"community"`
-	Postcode         string      `json:"postcode"`
-	IdentityType     uint8       `json:"identityType"`
-	IdentityNum      string      `json:"identityNum"`
-	Photo            string      `json:"photo"`
-	Signature        string      `json:"signature"`
-	UserTypeName     string      `json:"userTypeName"`
-	Full_photo       string      `json:"full_photo"`
-	Short_address    string      `json:"short_address"`
+	Uid              int64             `json:"uid"`
+	AccountType      uint8             `json:"accountType"`
+	Mobile           string            `json:"mobile"`
+	Email            string            `json:"Email"`
+	LoginAccount     string            `json:"loginAccount"`
+	WechatOpenid     map[string]string `json:"wechatOpenid"`
+	WechatUnionid    string            `json:"wechatUnionid"`
+	UserType         uint8             `json:"userType"`
+	DiffSrcRegTime   string            `json:"diffSrcRegTime"`
+	Rating           uint8             `json:"rating"`
+	BabyInfo         []AoBabyInfoXXOO  `json:"babyInfo"`
+	RelationWithBaby uint8             `json:"relationWithBaby"`
+	Nickname         string            `json:"nickname"`
+	Truename         string            `json:"truename"`
+	Sex              uint8             `json:"sex"`
+	Birthday         int64             `json:"birthday"`
+	QQNumber         uint64            `json:"qQNumber"`
+	Phone            string            `json:"phone"`
+	Fax              string            `json:"fax"`
+	Region           string            `json:"region"`
+	Address          string            `json:"address"`
+	Community        string            `json:"community"`
+	Postcode         string            `json:"postcode"`
+	IdentityType     uint8             `json:"identityType"`
+	IdentityNum      string            `json:"identityNum"`
+	Photo            string            `json:"photo"`
+	Signature        string            `json:"signature"`
+	UserTypeName     string            `json:"userTypeName"`
+	Full_photo       string            `json:"full_photo"`
+	Short_address    string            `json:"short_address"`
 }
 
 func ExUserGetUserInfos(uids []int64, host string, machineKey string, source string) (map[int64]ModelUser, error) {
@@ -83,7 +83,7 @@ func ExUserGetUserInfos(uids []int64, host string, machineKey string, source str
 	if aoRes.Result != 0 {
 		err = errors.New(fmt.Sprintf("result code is %d", aoRes.Result))
 	}
-	return nil,err
+	return nil, err
 }
 
 func exUserGetNickName(uid uint64, nickName string) string {
@@ -106,8 +106,20 @@ func exUserGetPhoto(photo string) string {
 }
 
 func exUserGetNameByUserType(userType uint8) string {
-	userTypeName := [4]string{"会员", "育儿顾问", "官方运营", "育儿专家"}
-	return userTypeName[userType]
+	switch userType {
+	case uint8(0):
+		return "会员"
+	case uint8(1):
+		return "育儿顾问"
+	case uint8(2):
+		return "官方运营"
+	case uint8(3):
+		return "育儿专家"
+	case uint8(4):
+		return "店长"
+	default:
+		return "会员"
+	}
 }
 
 func exUserGetFullPhotoByPhoto(photo string) string {
@@ -249,7 +261,7 @@ func ExUserGetUserInfoByPhone(phone string, host string, machineKey string, sour
 	}
 }
 
-func ExUserCheckLogin(uid int64,skey string, host string, machineKey string, source string) (bool, error) {
+func ExUserCheckLogin(uid int64, skey string, host string, machineKey string, source string) (bool, error) {
 
 	var req = NewRequest()
 
@@ -274,9 +286,9 @@ func ExUserCheckLogin(uid int64,skey string, host string, machineKey string, sou
 	_, err := goClient.Call(req, aoReq, aoRes)
 
 	if err != nil {
-		return false,err
+		return false, err
 	} else if aoRes.Result != 0 {
-		return false,nil
+		return false, nil
 	}
-	return true,nil
+	return true, nil
 }
