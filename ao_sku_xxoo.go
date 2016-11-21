@@ -1,5 +1,10 @@
 package goao
 
+import (
+	"errors"
+	"fmt"
+)
+
 /* AoDetailmainPoItemInfoXXOO START */
 type AoDetailmainPoItemInfoXXOO struct {
 	AoXXOO
@@ -2807,3 +2812,1548 @@ func (ao *AoDetailmainPoItemStockInfoXXOO) UnSerialize(bs *ByteStream) error {
 }
 
 /* AoDetailmainPoItemStockInfoXXOO END */
+
+
+
+/*	AoSkuInfoById   start	*/
+type AoSkuInfoByIdFilterXXOO struct {
+	AoXXOO
+	Skuid   uint64
+	Skuid_u uint8
+}
+
+func NewAoSkuInfoByIdFilterXXOO() *AoSkuInfoByIdFilterXXOO {
+	model := &AoSkuInfoByIdFilterXXOO{}
+
+	return model
+}
+
+func (ao *AoSkuInfoByIdFilterXXOO) SetSkuid(skuid uint64) {
+	ao.Skuid = skuid
+	ao.Skuid_u = 1
+}
+
+func (ao *AoSkuInfoByIdFilterXXOO) Serialize(bs *ByteStream) bool {
+
+	bs.PushUint32(uint32(ao.getClassLen()))
+
+	return ao.serialize_internal(bs)
+}
+
+func (ao *AoSkuInfoByIdFilterXXOO) serialize_internal(bs *ByteStream) bool {
+	bs.PushUint32(ao.Version)
+	bs.PushUint8(ao.Version_u)
+	bs.PushUint64(ao.Skuid)
+	bs.PushUint8(ao.Skuid_u)
+
+	return bs.IsGood()
+}
+
+func (ao *AoSkuInfoByIdFilterXXOO) getClassLen() int {
+
+	bsLen := NewByteStream()
+	bsLen.SetRealWrite(false)
+	ao.serialize_internal(bsLen)
+	length := bsLen.GetWrittenLength()
+
+	return length
+}
+
+/**			SkuAllInfo				**/
+type AoSkuInfoByIdSkuAllInfoXXOO struct {
+	AoXXOO
+	Skuid             uint64
+	Skuid_u           uint8
+	OrdinaryInfoPo    AoSkuInfoByIdOrdinaryInfoXXOO
+	OrdinaryInfoPo_u  uint8
+	SkuDetailInfoPo   []AoSkuInfoByIdSkuDetailInfoXXOO
+	SkuDetailInfoPo_u uint8
+	AreaInfoPo        map[uint32]AoSkuInfoByIdAreaInfoXXOO
+	AreaInfoPo_u      uint8
+	SkuPicPo          []AoSkuInfoByIdSkuPicXXOO
+	SkuPicPo_u        uint8
+	SkuCombPo         []AoSkuInfoByIdSkuCombXXOO
+	SkuCombPo_u       uint8
+}
+
+func NewAoSkuInfoByIdSkuAllInfoXXOO() *AoSkuInfoByIdSkuAllInfoXXOO {
+	model := &AoSkuInfoByIdSkuAllInfoXXOO{}
+	return model
+}
+
+func (ao *AoSkuInfoByIdSkuAllInfoXXOO) UnSerialize(bs *ByteStream) error {
+	classLen, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	startPop := bs.GetReadLength()
+
+	ao.Version, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Version_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	//fmt.Printf("version:%d", ao.Version)
+	ao.Skuid, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.Skuid_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	ordinaryInfoPo := NewAoSkuInfoByIdOrdinaryInfoXXOO()
+	err = ordinaryInfoPo.UnSerialize(bs)
+	if err != nil {
+		return err
+	}
+	ao.OrdinaryInfoPo = *ordinaryInfoPo
+	ao.OrdinaryInfoPo_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	lengthSkuDetail, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	for i := uint32(0); i < lengthSkuDetail; i++ {
+
+		skuDetailInfoPo := NewAoSkuInfoByIdSkuDetailInfoXXOO()
+		err = skuDetailInfoPo.UnSerialize(bs)
+		if err != nil {
+			return err
+		}
+		ao.SkuDetailInfoPo = append(ao.SkuDetailInfoPo, *skuDetailInfoPo)
+	}
+	ao.SkuDetailInfoPo_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	lengthAreaInfoPo, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	var areaId uint32
+	//fmt.Printf("len:%d", lengthAreaInfoPo)
+	ao.AreaInfoPo = make(map[uint32]AoSkuInfoByIdAreaInfoXXOO, lengthAreaInfoPo)
+	//var areaInfoPo *AoSkuInfoByIdAreaInfoXXOO
+	for i := uint32(0); i < lengthAreaInfoPo; i++ {
+		//fmt.Printf("i:%d", i)
+		areaId, err = bs.PopUint32()
+		if err != nil {
+			return errors.New(fmt.Sprintf("areaInfo error: %s,length:%d,index:%d", err.Error(), lengthAreaInfoPo, i))
+		}
+		areaInfoPo := NewAoSkuInfoByIdAreaInfoXXOO()
+		err = areaInfoPo.UnSerialize(bs)
+		if err != nil {
+			return err
+		}
+		//fmt.Printf("areaId:%d,areaInfo:%+v", areaId, *areaInfoPo)
+		ao.AreaInfoPo[areaId] = *areaInfoPo
+	}
+	//fmt.Printf("infoPros:%+v", ao.AreaInfoPo)
+	ao.AreaInfoPo_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	lengthSkuPic, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	for i := uint32(0); i < lengthSkuPic; i++ {
+
+		SkuPicPo := NewAoSkuInfoByIdSkuPicXXOO()
+		err = SkuPicPo.UnSerialize(bs)
+		if err != nil {
+			return err
+		}
+		ao.SkuPicPo = append(ao.SkuPicPo, *SkuPicPo)
+	}
+	ao.SkuPicPo_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	if ao.Version >= 1 {
+		lengthskuCombPo, err := bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		for i := uint32(0); i < lengthskuCombPo; i++ {
+
+			skuCombPo := NewAoSkuInfoByIdSkuCombXXOO()
+			err = skuCombPo.UnSerialize(bs)
+			if err != nil {
+				return err
+			}
+			ao.SkuCombPo = append(ao.SkuCombPo, *skuCombPo)
+		}
+		ao.SkuCombPo_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+	}
+
+	ao.Compat(bs, classLen, startPop)
+	return nil
+}
+
+type AoSkuInfoByIdOrdinaryInfoXXOO struct {
+	AoXXOO
+	Skuid                    uint64
+	Skuid_u                  uint8
+	CooperatorSubaccountId   uint64
+	CooperatorSubaccountId_u uint8
+	CooperatorId             uint64
+	CooperatorId_u           uint8
+	CategoryId               uint32
+	CategoryId_u             uint8
+	SkuType                  uint32
+	SkuType_u                uint8
+	SkuOperationModel        uint32
+	SkuOperationModel_u      uint8
+	BarCode                  string
+	BarCode_u                uint8
+	SkuLocalCode             string
+	SkuLocalCode_u           uint8
+	SkuDimensionalBarCode    string
+	SkuDimensionalBarCode_u  uint8
+	SkuTitle                 string
+	SkuTitle_u               uint8
+	SkuSubTitle              string
+	SkuSubTitle_u            uint8
+	SkuPromotDesc            string
+	SkuPromotDesc_u          uint8
+	SkuSaleAttr              string
+	SkuSaleAttr_u            uint8
+	SkuSaleAttrDesc          string
+	SkuSaleAttrDesc_u        uint8
+	SkuKeyAttr               string
+	SkuKeyAttr_u             uint8
+	SkuKeyAttrDesc           string
+	SkuKeyAttrDesc_u         uint8
+	SkuReferPrice            uint32
+	SkuReferPrice_u          uint8
+	SkuProperty              []uint8
+	SkuProperty_u            uint8
+	SkuState                 uint8
+	SkuState_u               uint8
+	SkuWeight                uint32
+	SkuWeight_u              uint8
+	SkuNetWeight             uint32
+	SkuNetWeight_u           uint8
+	SkuVolume                uint64
+	SkuVolume_u              uint8
+	SkuSizeX                 uint16
+	SkuSizeX_u               uint8
+	SkuSizeY                 uint16
+	SkuSizeY_u               uint8
+	SkuSizeZ                 uint16
+	SkuSizeZ_u               uint8
+	SkuCategoryAttr          string
+	SkuCategoryAttr_u        uint8
+	SkuKeywords              string
+	SkuKeywords_u            uint8
+	SkuVatrate               uint32
+	SkuVatrate_u             uint8
+	SkuSnapVersion           uint32
+	SkuSnapVersion_u         uint8
+	SkuBuyLimit              uint32
+	SkuBuyLimit_u            uint8
+	SkuBrand                 uint32
+	SkuBrand_u               uint8
+	SkuExchangePoint         uint32
+	SkuExchangePoint_u       uint8
+	MainSkuid                uint64
+	MainSkuid_u              uint8
+	SkuLastUpTime            uint32
+	SkuLastUpTime_u          uint8
+	SkuLastDownTime          uint32
+	SkuLastDownTime_u        uint8
+	SkuAddTime               uint32
+	SkuAddTime_u             uint8
+	SkuLastUpdateTime        uint32
+	SkuLastUpdateTime_u      uint8
+	LastUpdateTime           uint32
+	LastUpdateTime_u         uint8
+	Sort                     uint32
+	Sort_u                   uint8
+	ExpertRecommend          string
+	ExpertRecommend_u        uint8
+	TaxInfo                  AoSkuInfoByIdTaxXXOO
+	TaxInfo_u                uint8
+	PopSkuCode               string
+	PopSkuCode_u             uint8
+	SkuEffectiveTime         uint32
+	SkuEffectiveTime_u       uint8
+	SkuExpireTime            uint32
+	SkuExpireTime_u          uint8
+	SkuStockExpireTime       uint32
+	SkuStockExpireTime_u     uint8
+	SkuContacterNum          uint32
+	SkuContacterNum_u        uint8
+	SkuTravellerNum          uint32
+	SkuTravellerNum_u        uint8
+	SkuSaleArea              string
+	SkuSaleArea_u            uint8
+	SkuUnitCost              uint32
+	SkuUnitCost_u            uint8
+}
+
+func NewAoSkuInfoByIdOrdinaryInfoXXOO() *AoSkuInfoByIdOrdinaryInfoXXOO {
+	return &AoSkuInfoByIdOrdinaryInfoXXOO{}
+}
+
+func (ao *AoSkuInfoByIdOrdinaryInfoXXOO) UnSerialize(bs *ByteStream) error {
+
+	classLen, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	startPop := bs.GetReadLength()
+
+	ao.Version, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Version_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Skuid, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.Skuid_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CooperatorSubaccountId, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CooperatorSubaccountId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CooperatorId, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CooperatorId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CategoryId, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.CategoryId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuType, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuType_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuOperationModel, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuOperationModel_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.BarCode, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.BarCode_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuLocalCode, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuLocalCode_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuDimensionalBarCode, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuDimensionalBarCode_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuTitle, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuTitle_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuSubTitle, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuSubTitle_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuPromotDesc, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuPromotDesc_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuSaleAttr, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuSaleAttr_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuSaleAttrDesc, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuSaleAttrDesc_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuKeyAttr, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuKeyAttr_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuKeyAttrDesc, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuKeyAttrDesc_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuReferPrice, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuReferPrice_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuProperty, err = bs.PopBitSet()
+	if err != nil {
+		return err
+	}
+	ao.SkuProperty_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuState, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuState_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuWeight, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuWeight_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuNetWeight, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuNetWeight_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuVolume, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.SkuVolume_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuSizeX, err = bs.PopUint16()
+	if err != nil {
+		return err
+	}
+	ao.SkuSizeX_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuSizeY, err = bs.PopUint16()
+	if err != nil {
+		return err
+	}
+	ao.SkuSizeY_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuSizeZ, err = bs.PopUint16()
+	if err != nil {
+		return err
+	}
+	ao.SkuSizeZ_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuCategoryAttr, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuCategoryAttr_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuKeywords, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuKeywords_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuVatrate, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuVatrate_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuSnapVersion, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuSnapVersion_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuBuyLimit, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuBuyLimit_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuBrand, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuBrand_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuExchangePoint, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuExchangePoint_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.MainSkuid, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.MainSkuid_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuLastUpTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuLastUpTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuLastDownTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuLastDownTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	ao.SkuAddTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuAddTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuLastUpdateTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuLastUpdateTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.LastUpdateTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.LastUpdateTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Sort, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Sort_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.ExpertRecommend, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.ExpertRecommend_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Reserve, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.Reserve_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	if ao.Version >= 1 {
+		taxPro := NewAoSkuInfoByIdTaxXXOO()
+		err = taxPro.UnSerialize(bs)
+		if err != nil {
+			return err
+		}
+		ao.TaxInfo = *taxPro
+		ao.TaxInfo_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+	if ao.Version >= 2 {
+		ao.PopSkuCode, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.PopSkuCode_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+	if ao.Version >= 3 {
+		ao.SkuEffectiveTime, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.SkuEffectiveTime_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.SkuExpireTime, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.SkuExpireTime_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+	if ao.Version >= 4 {
+		ao.SkuStockExpireTime, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.SkuStockExpireTime_u, err = bs.PopUint8()
+		if err != nil {
+
+		}
+	}
+	if ao.Version >= 5 {
+		ao.SkuContacterNum, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.SkuContacterNum_u, err = bs.PopUint8()
+		if err != nil {
+
+		}
+		ao.SkuTravellerNum, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.SkuTravellerNum_u, err = bs.PopUint8()
+		if err != nil {
+
+		}
+	}
+	if ao.Version >= 6 {
+		ao.SkuSaleArea, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.SkuSaleArea_u, err = bs.PopUint8()
+		if err != nil {
+
+		}
+	}
+	if ao.Version >= 7 {
+		ao.SkuUnitCost, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.SkuUnitCost_u, err = bs.PopUint8()
+		if err != nil {
+
+		}
+	}
+
+	ao.Compat(bs, classLen, startPop)
+	return nil
+}
+
+type AoSkuInfoByIdTaxXXOO struct {
+	AoXXOO
+	TaxRate             uint32
+	TaxRate_u           uint8
+	CustomNo            uint32
+	CustomNo_u          uint8
+	CustomRecordNo      string
+	CustomRecordNo_u    uint8
+	CustomRecordName    string
+	CustomRecordName_u  uint8
+	DistributionWay     uint32
+	DistributionWay_u   uint8
+	BrandNation         string
+	BrandNation_u       uint8
+	BrandFlag           string
+	BrandFlag_u         uint8
+	DistributionPlace   string
+	DistributionPlace_u uint8
+	SkucustomRecordNo   string
+	SkucustomRecordNo_u uint8
+}
+
+func NewAoSkuInfoByIdTaxXXOO() *AoSkuInfoByIdTaxXXOO {
+	return &AoSkuInfoByIdTaxXXOO{}
+}
+
+func (ao *AoSkuInfoByIdTaxXXOO) UnSerialize(bs *ByteStream) error {
+	classLen, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	startPop := bs.GetReadLength()
+
+	ao.Version, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Version_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.TaxRate, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.TaxRate_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Reserve, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.Reserve_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	if ao.Version >= 1 {
+		ao.CustomNo, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.CustomNo_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.CustomRecordNo, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.CustomRecordNo_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.CustomRecordName, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.CustomRecordName_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.DistributionWay, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.DistributionWay_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if ao.Version >= 2 {
+		ao.BrandNation, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.BrandNation_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.BrandFlag, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.BrandFlag_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.DistributionPlace, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.DistributionPlace_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if ao.Version >= 3 {
+		ao.SkucustomRecordNo, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.SkucustomRecordNo_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	ao.Compat(bs, classLen, startPop)
+	return nil
+}
+
+type AoSkuInfoByIdSkuDetailInfoXXOO struct {
+	AoXXOO
+	Skuid                     uint64
+	Skuid_u                   uint8
+	SkuDetailType             uint8
+	SkuDetailType_u           uint8
+	Channel                   uint32
+	Channel_u                 uint8
+	CooperatorSubaccountId    uint64
+	CooperatorSubaccountId_u  uint8
+	Property                  []uint8
+	Property_u                uint8
+	DetailUrl                 string
+	DetailUrl_u               uint8
+	SkuDetail                 string
+	SkuDetail_u               uint8
+	SkuDetailAddTime          uint32
+	SkuDetailAddTime_u        uint8
+	SkuDetailLastUpdateTime   uint32
+	SkuDetailLastUpdateTime_u uint8
+}
+
+func NewAoSkuInfoByIdSkuDetailInfoXXOO() *AoSkuInfoByIdSkuDetailInfoXXOO {
+	return &AoSkuInfoByIdSkuDetailInfoXXOO{}
+}
+
+func (ao *AoSkuInfoByIdSkuDetailInfoXXOO) UnSerialize(bs *ByteStream) error {
+	classLen, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	startPop := bs.GetReadLength()
+
+	ao.Version, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Version_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Skuid, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.Skuid_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetailType, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetailType_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Channel, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Channel_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CooperatorSubaccountId, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CooperatorSubaccountId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Property, err = bs.PopBitSet()
+	if err != nil {
+		return err
+	}
+	ao.Property_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.DetailUrl, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.DetailUrl_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetail, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetail_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetailAddTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetailAddTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetailLastUpdateTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.SkuDetailLastUpdateTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Reserve, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.Reserve_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	ao.Compat(bs, classLen, startPop)
+	return nil
+}
+
+type AoSkuInfoByIdAreaInfoXXOO struct {
+	AoXXOO
+	AreaId                        uint32
+	AreaId_u                      uint8
+	CoSubAccountId                uint64
+	CoSubAccountId_u              uint8
+	CoSkuAreaCode                 string
+	CoSkuAreaCode_u               uint8
+	CoBarCode                     string
+	CoBarCode_u                   uint8
+	PromotionType                 uint32
+	PromotionType_u               uint8
+	AreaPromotDesc                string
+	AreaPromotDesc_u              uint8
+	AreaPrice                     uint32
+	AreaPrice_u                   uint8
+	AreaPrePrice                  uint32
+	AreaPrePrice_u                uint8
+	AreaCostPrice                 uint32
+	AreaCostPrice_u               uint8
+	AreaBussiessPrice             uint32
+	AreaBussiessPrice_u           uint8
+	AreaProperty                  []uint8
+	AreaProperty_u                uint8
+	AreaState                     uint8
+	AreaState_u                   uint8
+	AreaMinBuyCount               uint32
+	AreaMinBuyCount_u             uint8
+	AreaMaxBuyCount               uint32
+	AreaMaxBuyCount_u             uint8
+	AreaAddTime                   uint32
+	AreaAddTime_u                 uint8
+	AreaLastUpdateTime            uint32
+	AreaLastUpdateTime_u          uint8
+	AreaBuyTimes                  uint32
+	AreaBuyTimes_u                uint8
+	AreaFirstPublishTime          uint32
+	AreaFirstPublishTime_u        uint8
+	AreaPromotDescEffectiveTime   uint32
+	AreaPromotDescEffectiveTime_u uint8
+	AreaPromotDescExpireTime      uint32
+	AreaPromotDescExpireTime_u    uint8
+	AreaShareCommission           uint32
+	AreaShareCommission_u         uint8
+	EntityId		     	uint32
+	EntityId_u			uint8
+	StoreId				string
+	StoreId_u			uint8
+	ChannelId			uint32
+	ChannelId_u			uint8
+	Detail				string
+	Detail_u			uint8
+	WorkStateCode			string
+	WorkStateCode_u			uint8
+	CirculationModeCode		string
+	CirculationModeCode_u		uint8
+	AreaBuyer			string
+	AreaBuyer_u			uint8
+
+}
+
+func NewAoSkuInfoByIdAreaInfoXXOO() *AoSkuInfoByIdAreaInfoXXOO {
+	return &AoSkuInfoByIdAreaInfoXXOO{}
+}
+
+func (ao *AoSkuInfoByIdAreaInfoXXOO) UnSerialize(bs *ByteStream) error {
+	classLen, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	startPop := bs.GetReadLength()
+
+	ao.Version, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Version_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaId, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CoSubAccountId, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CoSubAccountId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CoSkuAreaCode, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.CoSkuAreaCode_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CoBarCode, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.CoBarCode_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PromotionType, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.PromotionType_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaPromotDesc, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.AreaPromotDesc_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaPrice, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaPrice_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaPrePrice, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaPrePrice_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaCostPrice, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaCostPrice_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaBussiessPrice, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaBussiessPrice_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaProperty, err = bs.PopBitSet()
+	if err != nil {
+		return err
+	}
+	ao.AreaProperty_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaState, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaState_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaMinBuyCount, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaMinBuyCount_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaMaxBuyCount, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaMaxBuyCount_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaAddTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaAddTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.AreaLastUpdateTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.AreaLastUpdateTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Reserve, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.Reserve_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	if ao.Version >= 1 {
+		ao.AreaBuyTimes, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.AreaBuyTimes_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if ao.Version >= 2 {
+		ao.AreaFirstPublishTime, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.AreaFirstPublishTime_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.AreaPromotDescEffectiveTime, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.AreaPromotDescEffectiveTime_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.AreaPromotDescExpireTime, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.AreaPromotDescExpireTime_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if ao.Version >= 3 {
+		ao.AreaShareCommission, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.AreaShareCommission_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+	}
+
+	if ao.Version >= 4 {
+		ao.EntityId, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.EntityId_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.StoreId, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.StoreId_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.ChannelId, err = bs.PopUint32()
+		if err != nil {
+			return err
+		}
+		ao.ChannelId_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.Detail, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.Detail_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.WorkStateCode, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.WorkStateCode_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.CirculationModeCode, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.CirculationModeCode_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+		ao.AreaBuyer, err = bs.PopString()
+		if err != nil {
+			return err
+		}
+		ao.AreaBuyer_u, err = bs.PopUint8()
+		if err != nil {
+			return err
+		}
+
+	}
+
+	ao.Compat(bs, classLen, startPop)
+	return nil
+}
+
+type AoSkuInfoByIdSkuPicXXOO struct {
+	AoXXOO
+	Channel             uint32
+	Channel_u           uint8
+	CoSubAccountId      uint64
+	CoSubAccountId_u    uint8
+	PicUrl              string
+	PicUrl_u            uint8
+	PicFileId           string
+	PicFileId_u         uint8
+	PicSize             string
+	PicSize_u           uint8
+	PicIndex            uint8
+	PicIndex_u          uint8
+	PicType             uint8
+	PicType_u           uint8
+	PicProperty         []uint8
+	PicProperty_u       uint8
+	PicDesc             string
+	PicDesc_u           uint8
+	PicUploadTime       uint32
+	PicUploadTime_u     uint8
+	PicLastUpdateTime   uint32
+	PicLastUpdateTime_u uint8
+}
+
+func NewAoSkuInfoByIdSkuPicXXOO() *AoSkuInfoByIdSkuPicXXOO {
+	return &AoSkuInfoByIdSkuPicXXOO{}
+}
+
+func (ao *AoSkuInfoByIdSkuPicXXOO) UnSerialize(bs *ByteStream) error {
+	classLen, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	startPop := bs.GetReadLength()
+
+	ao.Version, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Version_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Channel, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Channel_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CoSubAccountId, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CoSubAccountId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicUrl, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.PicUrl_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicFileId, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.PicFileId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicSize, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.PicSize_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicIndex, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicIndex_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicType, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicType_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicProperty, err = bs.PopBitSet()
+	if err != nil {
+		return err
+	}
+	ao.PicProperty_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicDesc, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.PicDesc_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicUploadTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.PicUploadTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.PicLastUpdateTime, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.PicLastUpdateTime_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.Reserve, err = bs.PopString()
+	if err != nil {
+		return err
+	}
+	ao.Reserve_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	ao.Compat(bs, classLen, startPop)
+	return nil
+}
+
+type AoSkuInfoByIdSkuCombXXOO struct {
+	AoXXOO
+	CombSkuId         uint64
+	CombSkuId_u       uint8
+	CombParentSkuId   uint64
+	CombParentSkuId_u uint8
+	ShareRatio        uint64
+	ShareRatio_u      uint8
+	CombSkuNum        uint64
+	CombSkuNum_u      uint8
+}
+
+func NewAoSkuInfoByIdSkuCombXXOO() *AoSkuInfoByIdSkuCombXXOO {
+	return &AoSkuInfoByIdSkuCombXXOO{}
+}
+
+func (ao *AoSkuInfoByIdSkuCombXXOO) UnSerialize(bs *ByteStream) error {
+	classLen, err := bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	startPop := bs.GetReadLength()
+
+	ao.Version, err = bs.PopUint32()
+	if err != nil {
+		return err
+	}
+	ao.Version_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CombSkuId, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CombSkuId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CombParentSkuId, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CombParentSkuId_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.ShareRatio, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.ShareRatio_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+	ao.CombSkuNum, err = bs.PopUint64()
+	if err != nil {
+		return err
+	}
+	ao.CombSkuNum_u, err = bs.PopUint8()
+	if err != nil {
+		return err
+	}
+
+	ao.Compat(bs, classLen, startPop)
+	return nil
+}
+
+/*	AoSkuInfoById 	end	*/
